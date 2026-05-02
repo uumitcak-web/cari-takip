@@ -1,0 +1,105 @@
+{
+  "theme": "LIGHT",
+  "archetype": "Archetype 4 (Swiss & High-Contrast)",
+  "rationale": "For an offline finance and accounting mobile app (React Native), data density, objective truth, and clarity are paramount. The Swiss & High-Contrast archetype ensures legibility of numbers, balances, and dates while maintaining a highly professional, modern aesthetic.",
+  "typography": {
+    "fontFamily": "Work Sans (Headings) and IBM Plex Sans (Body)",
+    "rules": {
+      "h1": { "fontSize": 36, "fontWeight": "800", "letterSpacing": -1.5, "lineHeight": 40 },
+      "h2": { "fontSize": 28, "fontWeight": "700", "letterSpacing": -1, "lineHeight": 32 },
+      "h3": { "fontSize": 20, "fontWeight": "600", "letterSpacing": -0.5, "lineHeight": 24 },
+      "body": { "fontSize": 16, "fontWeight": "400", "lineHeight": 22 },
+      "label": { "fontSize": 12, "fontWeight": "600", "textTransform": "uppercase", "letterSpacing": 1.2 }
+    },
+    "alignment": "Strictly left-aligned for data and lists. No center alignment for structural text."
+  },
+  "colors": {
+    "background_primary": "#FFFFFF",
+    "background_secondary": "#F4F4F5",
+    "text_primary": "#0A0A0A",
+    "text_secondary": "#71717A",
+    "border": "#E4E4E7",
+    "status": {
+      "debt": "#E11D48",
+      "asset": "#10B981",
+      "warning": "#F59E0B",
+      "brand_accent": "#0A0A0A"
+    },
+    "card_dark_bg": "#18181B"
+  },
+  "layout_spacing": {
+    "screen_padding": 20,
+    "element_gap": 12,
+    "section_gap": 32,
+    "border_radius": {
+      "base": 8,
+      "card": 16,
+      "sheet": 24
+    }
+  },
+  "navigation": {
+    "bottom_tabs": {
+      "background": "#FFFFFF",
+      "active_color": "#0A0A0A",
+      "inactive_color": "#A1A1AA",
+      "borderTop": "1px solid #E4E4E7",
+      "tabs": [
+        { "name": "Özet", "icon": "pie-chart" },
+        { "name": "Cariler", "icon": "people" },
+        { "name": "Kartlar", "icon": "card" },
+        { "name": "Bankalar", "icon": "business" },
+        { "name": "Ödemeler", "icon": "swap-horizontal" }
+      ]
+    }
+  },
+  "components": {
+    "dashboard_summary": {
+      "layout": "Bento-grid inspired. Large prominent Net Position card, followed by 2-column smaller metrics.",
+      "style": "Flat cards, 1px solid #E4E4E7 border, no drop shadows. Background #F4F4F5."
+    },
+    "credit_card_visual": {
+      "layout": "Aspect ratio 1.58:1, mimicking physical cards.",
+      "background": "Use image from image_urls with overlay, or solid #18181B with abstract shapes.",
+      "content": "Bank name top left, remaining limit huge in the center, progress bar at the bottom.",
+      "progress_bar": "Height 6px, track background rgba(255,255,255,0.2), fill indicator pure white (#FFFFFF).",
+      "warning_state": "If statement date is near, highlight due date in #F59E0B."
+    },
+    "list_items": {
+      "layout": "Row direction, space-between.",
+      "left": "Avatar/Icon + Title + Subtitle",
+      "right": "Amount formatted dynamically (Red for debt, Green for asset, with ₺ symbol).",
+      "separator": "1px solid #E4E4E7"
+    },
+    "bottom_sheet": {
+      "usage": "For all Add/Edit actions (Add Payment, Add Company).",
+      "style": "Border radius 24px on top corners, shadow for depth separation, #FFFFFF background.",
+      "handle": "40x4px pill #E4E4E7 centered at top."
+    },
+    "inputs": {
+      "style": "Height 48px, border 1px solid #E4E4E7, radius 8px, padding 12px. Focus state gets border #0A0A0A."
+    }
+  },
+  "image_urls": [
+    {
+      "url": "https://images.unsplash.com/photo-1761078739436-ccee01f3d89c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODF8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRleHR1cmUlMjBiYWNrZ3JvdW5kJTIwZGFya3xlbnwwfHx8fDE3Nzc3MDY2MDF8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Dark abstract texture for credit card backgrounds.",
+      "category": "Credit Card Background"
+    }
+  ],
+  "accessibility": {
+    "contrast": "Ensure all text amounts have at least 4.5:1 ratio against their background.",
+    "touch_targets": "Minimum 44x44px for all buttons, tab items, and list rows.",
+    "test_ids": "Apply testID (React Native equivalent of data-testid) to all interactive elements (e.g. testID='tab-ozet')."
+  },
+  "instructions_to_main_agent": [
+    "Develop standard React Native Expo components using .js files.",
+    "Do NOT use HTML/Tailwind; translate the Swiss High-Contrast design principles into React Native StyleSheet objects.",
+    "Implement bottom tab navigation using @react-navigation/bottom-tabs and use Ionicons from @expo/vector-icons.",
+    "App must be in Turkish Lira (₺). Implement formatting util for currency.",
+    "Credit card usage should feature a prominent progress bar.",
+    "Data entry forms (modals) must use Bottom Sheets or standard RN Modals.",
+    "Store data via AsyncStorage or local SQLite since the app is fully offline.",
+    "Apply 'Swiss Brutalist' aesthetic: 1px flat borders, heavy font weights for headers, no soft drop shadows.",
+    "Make sure all components have testID prop."
+  ]
+}
