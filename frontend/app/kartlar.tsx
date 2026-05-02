@@ -305,5 +305,3 @@ const styles = StyleSheet.create({
   balanceValue: { fontSize: 28, fontWeight: '800', letterSpacing: -1 },
   balanceHint: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
 });
-tSize: 12, color: colors.textSecondary, marginTop: 2 },
-});
