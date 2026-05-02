@@ -163,8 +163,8 @@ function AddCardSheet({
         testID="btn-save-card"
         onPress={() => {
           if (!name.trim() || !bankName.trim()) return;
-          const lim = parseFloat(limit.replace(',', '.')) || 0;
-          const u = parseFloat(used.replace(',', '.')) || 0;
+          const lim = parseTRY(limit);
+          const u = parseTRY(used);
           const sd = Math.min(31, Math.max(1, parseInt(statementDay, 10) || 1));
           const od = Math.min(30, Math.max(1, parseInt(dueDayOffset, 10) || 10));
           onSubmit({ name: name.trim(), bankName: bankName.trim(), limit: lim, used: u, statementDay: sd, dueDayOffset: od });
@@ -199,7 +199,7 @@ function CardActionSheet({
   if (!card) return null;
 
   const submit = () => {
-    const n = parseFloat(amount.replace(',', '.'));
+    const n = parseTRY(amount);
     if (!n || n <= 0) return;
     if (mode === 'spend') onSpend(n, note || undefined);
     else if (mode === 'pay' && bankId) onPay(bankId, n, note || undefined);
@@ -304,4 +304,6 @@ const styles = StyleSheet.create({
   balanceLabel: { fontSize: 10, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5 },
   balanceValue: { fontSize: 28, fontWeight: '800', letterSpacing: -1 },
   balanceHint: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+});
+tSize: 12, color: colors.textSecondary, marginTop: 2 },
 });

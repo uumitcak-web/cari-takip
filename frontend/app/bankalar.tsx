@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../src/store';
 import { colors, radius, spacing } from '../src/theme';
-import { formatTRY } from '../src/format';
+import { formatTRY, parseTRY } from '../src/format';
 import Sheet from '../src/components/Sheet';
 import Field from '../src/components/Field';
 import Button from '../src/components/Button';
@@ -115,7 +115,7 @@ function AddBankSheet({
           onSubmit({
             name: name.trim(),
             accountName: accountName.trim() || undefined,
-            balance: parseFloat(balance.replace(',', '.')) || 0,
+            balance: parseTRY(balance),
           });
           reset();
         }}
@@ -143,7 +143,7 @@ function BankActionSheet({
   if (!bank) return null;
 
   const submit = () => {
-    const n = parseFloat(amount.replace(',', '.'));
+    const n = parseTRY(amount);
     if (!n || n <= 0) return;
     if (mode === 'in') onDeposit(n, note || undefined);
     else onWithdraw(n, note || undefined);

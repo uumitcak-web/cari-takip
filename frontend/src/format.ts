@@ -46,6 +46,21 @@ export function nextStatementDate(statementDay: number): Date {
   return next;
 }
 
+// Parse Turkish-formatted number strings: "1.000,50" → 1000.5, "1500" → 1500, "1500,25" → 1500.25
+export function parseTRY(s: string): number {
+  if (!s) return 0;
+  const cleaned = s.replace(/\s/g, '');
+  let normalized: string;
+  if (cleaned.includes(',')) {
+    // Comma is decimal separator, dots are thousand separators
+    normalized = cleaned.replace(/\./g, '').replace(',', '.');
+  } else {
+    normalized = cleaned;
+  }
+  const n = parseFloat(normalized);
+  return isNaN(n) ? 0 : n;
+}
+
 export function daysUntil(date: Date): number {
   const now = new Date();
   const ms = date.getTime() - now.getTime();
