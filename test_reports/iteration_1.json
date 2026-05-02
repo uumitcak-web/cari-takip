@@ -1,0 +1,29 @@
+{
+  "summary": "Tested all 11 flows of the offline Cari Hesap Takip (Akinsoft) Expo Router app at the public preview URL on a 414x896 mobile viewport. All flows pass: Dashboard rendering, bottom tab navigation, Cariler add+purchase, Kartlar add, Bankalar add, Cariler card-payment, Kartlar bankadan-ode, Odemeler list with newest-first, Dashboard reflecting all metrics, and localStorage persistence after reload. Math fully verified: Acme 0->1000->700 TL, Bonus card 0->300->200, Ziraat bank 5000->4900, Net 4000 TL.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "_layout.tsx Tabs.Screen", "issue": "tabBarTestID prop is set (tab-ozet, tab-cariler, etc.) but expo-router on web does NOT propagate it to the rendered tab DOM element. Tests had to fall back to role='tab' / visible label text. Native (iOS/Android) likely works since tabBarTestID is a React Navigation prop, but web does not surface it. Non-blocking for users; matters for testing ergonomics."}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Optional polish) Make bottom-sheet content scrollable on shorter viewports - on 414x896 the Kaydet button for AddCompany sheet rendered partly outside the viewport and required programmatic scroll_into_view; works once scrolled but on a real phone keyboard could obscure it. Wrap the Sheet body in a ScrollView or KeyboardAvoidingView+ScrollView so the Kaydet button is reachable.",
+    "(Optional) Surface tabBarTestID on web for easier QA, e.g. add a Pressable wrapper with testID inside tabBarButton, OR document that web testing should use role=tab + label."
+  ],
+  "critical_code_review_comments": [
+    "store.tsx: addCompany/addBank/addCard etc. use `data` (closure) at the time of the call inside persist; rapid sequential calls without awaiting could race because persist also setState. In current UI flows each action awaits, so safe; but a useReducer or functional setState would be more robust.",
+    "All currency parsing uses parseFloat after replacing ',' with '.', which works for tr-TR input ('1.000,00' would still be parsed as 1.0 though - users typing thousand separators will get wrong values). Consider stripping thousand-separator dots before replacing comma.",
+    "In addCard, `used: c.used ?? 0` is set first then `...c` overwrites it - so the `used` default is effectively ignored when caller passes `used`. Works currently because caller always sends `used`, but the default-merge order is misleading."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (offline app, no backend to test)", "frontend": "100% (11/11 flows)"},
+  "seed_data_creation": "Test added 1 company (Acme), 1 card (Bonus / Garanti / 20000 limit), 1 bank (Ziraat / 5000), and 3 transactions via UI. localStorage key 'cari_app_data_v1' is the only persistence target.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "App is offline-only React Native Expo Router on web preview. Use viewport 414x896. tabBarTestID (tab-ozet, tab-cariler, tab-kartlar, tab-bankalar, tab-odemeler) does NOT render in web DOM; use page.get_by_role('tab', name='Cariler') or get_by_text. Bottom-sheet Kaydet buttons may be below the fold - call scroll_into_view_if_needed before clicking. Picker option items (e.g. 'Kart ile Ödeme', 'Bankadan Öde') are inside the sheet and may also be off-screen - either scrollIntoView or click via JS. localStorage key: 'cari_app_data_v1'. Always clear and reload to start fresh.",
+  "rca_of_issue": "No app bugs found. Two test-side frictions: (1) tabBarTestID not surfaced on web (React Navigation web limitation); (2) Sheet content not scrollable causes off-screen Kaydet/Picker - solved in test via scroll_into_view_if_needed and JS click."
+}
