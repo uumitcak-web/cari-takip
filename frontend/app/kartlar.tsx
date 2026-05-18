@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../src/store';
 import { colors, radius, spacing, cardPalettes } from '../src/theme';
-import { formatTRY, nextStatementDate, daysUntil } from '../src/format';
+import { formatTRY, nextStatementDate, daysUntil, parseTRY } from '../src/format';
 import Sheet from '../src/components/Sheet';
 import Field from '../src/components/Field';
 import Button from '../src/components/Button';
