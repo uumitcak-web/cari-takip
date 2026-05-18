@@ -34,13 +34,14 @@ function meta(type: Transaction['type'], ctx: Context): { label: string; color: 
 }
 
 export default function TransactionList({ transactions, context, title }: Props) {
+  const list = transactions || [];
   return (
     <View style={styles.wrap} testID={`history-${context}`}>
       <Text style={styles.header}>{title || 'HAREKET GEÇMİŞİ'}</Text>
-      {transactions.length === 0 ? (
+      {list.length === 0 ? (
         <Text style={styles.empty}>Henüz hareket yok</Text>
       ) : (
-        transactions.map((t) => {
+        list.map((t) => {
           const m = meta(t.type, context);
           return (
             <View key={t.id} style={styles.row} testID={`history-row-${t.id}`}>
