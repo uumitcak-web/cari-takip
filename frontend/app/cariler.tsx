@@ -13,6 +13,7 @@ import Button from '../src/components/Button';
 import Picker from '../src/components/Picker';
 import EmptyState from '../src/components/EmptyState';
 import FAB from '../src/components/FAB';
+import TransactionList from '../src/components/TransactionList';
 import { Company } from '../src/types';
 
 export default function Cariler() {
@@ -170,11 +171,12 @@ function AddCompanySheet({
 }
 
 function CompanyActionSheet({
-  company, onClose, cards, onPurchase, onCash, onCard,
+  company, onClose, cards, transactions, onPurchase, onCash, onCard,
 }: {
   company: Company | null;
   onClose: () => void;
   cards: { id: string; name: string }[];
+  transactions: import('../src/types').Transaction[];
   onPurchase: (amt: number, note?: string) => void;
   onCash: (amt: number, note?: string) => void;
   onCard: (cardId: string, amt: number, note?: string) => void;
@@ -265,6 +267,8 @@ function CompanyActionSheet({
         <Ionicons name="close-circle-outline" size={18} color={colors.textSecondary} />
         <Text style={styles.cancelText}>Vazgeç</Text>
       </TouchableOpacity>
+
+      <TransactionList transactions={transactions} context="company" />
     </Sheet>
   );
 }

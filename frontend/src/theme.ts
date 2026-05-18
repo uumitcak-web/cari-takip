@@ -6,6 +6,7 @@ export const colors = {
   border: '#E4E4E7',
   debt: '#E11D48',
   asset: '#10B981',
+  purchase: '#2563EB',
   warning: '#F59E0B',
   cardDark: '#18181B',
   cardDark2: '#27272A',

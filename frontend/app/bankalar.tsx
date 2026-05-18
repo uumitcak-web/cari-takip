@@ -11,6 +11,7 @@ import Button from '../src/components/Button';
 import Picker from '../src/components/Picker';
 import EmptyState from '../src/components/EmptyState';
 import FAB from '../src/components/FAB';
+import TransactionList from '../src/components/TransactionList';
 import { Bank } from '../src/types';
 
 export default function Bankalar() {
@@ -82,6 +83,7 @@ export default function Bankalar() {
 
       <BankActionSheet
         bank={actionFor}
+        transactions={actionFor ? data.transactions.filter((t) => t.bankId === actionFor.id) : []}
         onClose={() => setActionFor(null)}
         onDeposit={async (amt, note) => { if (actionFor) await addBankDeposit(actionFor.id, amt, note); setActionFor(null); }}
         onWithdraw={async (amt, note) => { if (actionFor) await addBankWithdraw(actionFor.id, amt, note); setActionFor(null); }}
@@ -125,9 +127,10 @@ function AddBankSheet({
 }
 
 function BankActionSheet({
-  bank, onClose, onDeposit, onWithdraw,
+  bank, transactions, onClose, onDeposit, onWithdraw,
 }: {
   bank: Bank | null;
+  transactions: import('../src/types').Transaction[];
   onClose: () => void;
   onDeposit: (amt: number, note?: string) => void;
   onWithdraw: (amt: number, note?: string) => void;
@@ -170,6 +173,8 @@ function BankActionSheet({
       <Field label="Tutar (₺)" value={amount} onChangeText={setAmount} keyboardType="numeric" placeholder="0,00" testID="input-bank-amount" />
       <Field label="Açıklama (Opsiyonel)" value={note} onChangeText={setNote} testID="input-bank-note" />
       <Button title={mode === 'in' ? 'Para Ekle' : 'Para Çek'} onPress={submit} testID="btn-submit-bank-action" />
+
+      <TransactionList transactions={transactions} context="bank" />
     </Sheet>
   );
 }

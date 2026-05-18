@@ -11,6 +11,7 @@ import Button from '../src/components/Button';
 import Picker from '../src/components/Picker';
 import EmptyState from '../src/components/EmptyState';
 import FAB from '../src/components/FAB';
+import TransactionList from '../src/components/TransactionList';
 import { CreditCard } from '../src/types';
 
 export default function Kartlar() {
@@ -120,6 +121,7 @@ export default function Kartlar() {
       <CardActionSheet
         card={actionFor}
         banks={data.banks}
+        transactions={actionFor ? data.transactions.filter((t) => t.cardId === actionFor.id) : []}
         onClose={() => setActionFor(null)}
         onSpend={async (amt, note) => {
           if (actionFor) await addCardSpend(actionFor.id, amt, note);
@@ -176,10 +178,11 @@ function AddCardSheet({
 }
 
 function CardActionSheet({
-  card, banks, onClose, onSpend, onPay,
+  card, banks, transactions, onClose, onSpend, onPay,
 }: {
   card: CreditCard | null;
   banks: { id: string; name: string; balance: number }[];
+  transactions: import('../src/types').Transaction[];
   onClose: () => void;
   onSpend: (amt: number, note?: string) => void;
   onPay: (bankId: string, amt: number, note?: string) => void;
@@ -240,6 +243,8 @@ function CardActionSheet({
         disabled={mode === 'pay' && !bankId}
         testID="btn-submit-card-action"
       />
+
+      <TransactionList transactions={transactions} context="card" />
     </Sheet>
   );
 }
