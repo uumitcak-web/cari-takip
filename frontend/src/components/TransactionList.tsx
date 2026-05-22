@@ -34,7 +34,10 @@ function meta(type: Transaction['type'], ctx: Context): { label: string; color: 
 }
 
 export default function TransactionList({ transactions, context, title }: Props) {
-  const list = transactions || [];
+  const list = React.useMemo(
+    () => (transactions || []).slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [transactions]
+  );
   return (
     <View style={styles.wrap} testID={`history-${context}`}>
       <Text style={styles.header}>{title || 'HAREKET GEÇMİŞİ'}</Text>
