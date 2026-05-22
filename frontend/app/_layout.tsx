@@ -1,6 +1,8 @@
 import React from 'react';
+import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,9 +36,7 @@ function TabsNav() {
         name="index"
         options={{
           title: 'Özet',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="pie-chart" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="pie-chart" size={size} color={color} />,
           tabBarTestID: 'tab-ozet',
         }}
       />
@@ -44,9 +44,7 @@ function TabsNav() {
         name="cariler"
         options={{
           title: 'Cariler',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
           tabBarTestID: 'tab-cariler',
         }}
       />
@@ -54,9 +52,7 @@ function TabsNav() {
         name="kartlar"
         options={{
           title: 'Kartlar',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="card" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="card" size={size} color={color} />,
           tabBarTestID: 'tab-kartlar',
         }}
       />
@@ -64,9 +60,7 @@ function TabsNav() {
         name="bankalar"
         options={{
           title: 'Bankalar',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="business" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="business" size={size} color={color} />,
           tabBarTestID: 'tab-bankalar',
         }}
       />
@@ -74,9 +68,7 @@ function TabsNav() {
         name="odemeler"
         options={{
           title: 'Ödemeler',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="swap-horizontal" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="swap-horizontal" size={size} color={color} />,
           tabBarTestID: 'tab-odemeler',
         }}
       />
@@ -85,6 +77,20 @@ function TabsNav() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    ...Ionicons.font,
+  });
+
+  // Fontlar yüklenirken splash göster; hata olursa yine de uygulamayı aç (font olmadan)
+  if (!fontsLoaded && !fontError) {
+    return (
+      <View style={styles.splash}>
+        <ActivityIndicator color={colors.textPrimary} />
+        <Text style={styles.splashText}>Yükleniyor...</Text>
+      </View>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -96,3 +102,18 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  splash: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.bgSecondary,
+    gap: 12,
+  },
+  splashText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+});
