@@ -221,8 +221,6 @@ function CompanyActionSheet({
         </Text>
       </View>
 
-      <TransactionList transactions={transactions} context="company" />
-
       <Picker
         label="İşlem"
         options={[
@@ -270,6 +268,8 @@ function CompanyActionSheet({
         <Ionicons name="close-circle-outline" size={18} color={colors.textSecondary} />
         <Text style={styles.cancelText}>Vazgeç</Text>
       </TouchableOpacity>
+
+      <TransactionList transactions={transactions} context="company" />
     </Sheet>
   );
 }

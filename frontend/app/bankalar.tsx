@@ -161,8 +161,6 @@ function BankActionSheet({
         </Text>
       </View>
 
-      <TransactionList transactions={transactions} context="bank" />
-
       <Picker
         label="İşlem"
         options={[
@@ -176,6 +174,8 @@ function BankActionSheet({
       <Field label="Tutar (₺)" value={amount} onChangeText={setAmount} keyboardType="numeric" placeholder="0,00" testID="input-bank-amount" />
       <Field label="Açıklama (Opsiyonel)" value={note} onChangeText={setNote} testID="input-bank-note" />
       <Button title={mode === 'in' ? 'Para Ekle' : 'Para Çek'} onPress={submit} testID="btn-submit-bank-action" />
+
+      <TransactionList transactions={transactions} context="bank" />
     </Sheet>
   );
 }

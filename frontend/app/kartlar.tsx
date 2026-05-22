@@ -216,8 +216,6 @@ function CardActionSheet({
         <Text style={styles.balanceHint}>Kalan limit: {formatTRY(card.limit - card.used)}</Text>
       </View>
 
-      <TransactionList transactions={transactions} context="card" />
-
       <Picker
         label="İşlem"
         options={[
@@ -246,6 +244,8 @@ function CardActionSheet({
         disabled={mode === 'pay' && !bankId}
         testID="btn-submit-card-action"
       />
+
+      <TransactionList transactions={transactions} context="card" />
     </Sheet>
   );
 }
