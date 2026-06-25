@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { colors, spacing, radius } from '../theme';
 import { Transaction } from '../types';
 import { formatTRY, formatDate } from '../format';
+import { useStore } from '../store';
 
 type Context = 'company' | 'card' | 'bank';
 
@@ -13,8 +14,6 @@ interface Props {
 }
 
 function meta(type: Transaction['type'], ctx: Context): { label: string; color: string; sign: '+' | '-' } {
-  // Mavi = Alış / Harcama / Para Girişi (değeri artıran taraf)
-  // Kırmızı = Ödeme / Çıkış (değeri azaltan taraf)
   if (ctx === 'company') {
     if (type === 'company_purchase') return { label: 'Alış', color: colors.purchase, sign: '+' };
     if (type === 'cash_payment') return { label: 'Elden Ödeme', color: colors.debt, sign: '-' };
@@ -34,20 +33,44 @@ function meta(type: Transaction['type'], ctx: Context): { label: string; color: 
 }
 
 export default function TransactionList({ transactions, context, title }: Props) {
+  const { deleteTransaction } = useStore();
   const list = React.useMemo(
     () => (transactions || []).slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [transactions]
   );
+
+  const confirmDelete = (tx: Transaction) => {
+    const m = meta(tx.type, context);
+    Alert.alert(
+      'İşlemi Geri Al',
+      `${m.label} (${formatTRY(tx.amount)}) işlemi silinecek ve bakiyeler eski haline dönecek. Onaylıyor musunuz?`,
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        { text: 'Geri Al', style: 'destructive', onPress: () => deleteTransaction(tx.id) },
+      ]
+    );
+  };
+
   return (
     <View style={styles.wrap} testID={`history-${context}`}>
-      <Text style={styles.header}>{title || 'HAREKET GEÇMİŞİ'}</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.header}>{title || 'HAREKET GEÇMİŞİ'}</Text>
+        {list.length > 0 && <Text style={styles.hint}>Geri almak için basılı tutun</Text>}
+      </View>
       {list.length === 0 ? (
         <Text style={styles.empty}>Henüz hareket yok</Text>
       ) : (
         list.map((t) => {
           const m = meta(t.type, context);
           return (
-            <View key={t.id} style={styles.row} testID={`history-row-${t.id}`}>
+            <TouchableOpacity
+              key={t.id}
+              style={styles.row}
+              onLongPress={() => confirmDelete(t)}
+              delayLongPress={400}
+              testID={`history-row-${t.id}`}
+              activeOpacity={0.7}
+            >
               <View style={{ flex: 1 }}>
                 <Text style={styles.label}>{m.label}</Text>
                 <Text style={styles.date}>
@@ -59,7 +82,7 @@ export default function TransactionList({ transactions, context, title }: Props)
                 {m.sign}
                 {formatTRY(t.amount, false)} ₺
               </Text>
-            </View>
+            </TouchableOpacity>
           );
         })
       )}
@@ -74,12 +97,22 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.xs,
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
   header: {
     fontSize: 11,
     fontWeight: '700',
     color: colors.textSecondary,
     letterSpacing: 1.5,
-    marginBottom: spacing.xs,
+  },
+  hint: {
+    fontSize: 10,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
   },
   empty: {
     fontSize: 13,

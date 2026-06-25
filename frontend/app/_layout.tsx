@@ -64,14 +64,6 @@ function TabsNav() {
           tabBarTestID: 'tab-bankalar',
         }}
       />
-      <Tabs.Screen
-        name="odemeler"
-        options={{
-          title: 'Ödemeler',
-          tabBarIcon: ({ color, size }) => <Ionicons name="swap-horizontal" size={size} color={color} />,
-          tabBarTestID: 'tab-odemeler',
-        }}
-      />
     </Tabs>
   );
 }
