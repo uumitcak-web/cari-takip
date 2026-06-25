@@ -1,0 +1,46 @@
+{
+  "summary": "Frontend UI verification of Kasa Posdan-Gelen + Bankaya Aktarım feature on mobile viewport (390x1100, RN-Web). 11/13 functional tests PASS end-to-end. T1-T11 all verified live via UI on http://localhost:3000. T12 (long-press undo of kasa_transfer) and T13 (long-press delete of Osman with cascading bank reversal) cannot be exercised through web preview because react-native's Alert.alert is a no-op on react-native-web — the destructive 'Geri Al' / 'Sil' confirmation buttons never render in the DOM, so the deletion code path is never invoked from UI on web. The store-level reverse logic (deleteTransaction kasa_transfer branch: subtracts amount from bank.balance; deleteKasaEntry: iterates linkedTransfers and reverses each bank balance) is implemented correctly in /app/frontend/src/store.tsx (lines 279-284 and 326-345) and was verified by direct code review. These two flows must be confirmed in a native Expo build (iOS / Android) where Alert.alert is implemented natively. Verified labels/values: main /kasa screen shows eyebrow 'POSDAN GELEN' + title 'Kasa' + right total 'POSDAN GELEN' with gear icon; entry row sublabel is 'Posdan Gelen' (NOT 'Net Toplam'); Osman action sheet's balance card has 3 sections — POSTAN GELEN (left) + NAKİT (right) on top row, NET TOPLAM divider row below. After Tutar=21640 + Pos=2848,50: POSTAN GELEN=2.788,98 ₺, NAKİT=21.640,00 ₺, NET TOPLAM=24.428,98 ₺ (T5 PASS). Hareket geçmişi shows POS Satış +24.428,98 ₺ (T6 PASS). Transfer form opens with picker-transfer-bank / input-transfer-amount / input-transfer-note / btn-submit-transfer (T7 PASS). 9999 transfer leaves btn-submit-transfer aria-disabled='true', opacity 0.5, pointer-events none (T8 PASS). 500 transfer to Ziraat → POSTAN GELEN=2.288,98 ₺, NET TOPLAM=23.928,98 ₺, '→ Ziraat ... AKTARIM ... −500,00 ₺' red row in history (T9 PASS). After closing the sheet the main row + top-right total both show 2.288,98 (T10 PASS — count=2). /bankalar → Ziraat row → BAKİYE shows 1.500,00 ₺ and 'Kasa Aktarımı +500,00 ₺' in history (T11 PASS).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "T12 / T13 (long-press → destructive confirm) on web preview",
+        "issue": "react-native Alert.alert is a no-op on react-native-web — the 'Geri Al' / 'Sil' confirm buttons never appear in the DOM, so transfer undo and Osman delete cannot be exercised through the web preview. Underlying store logic (deleteTransaction kasa_transfer + deleteKasaEntry cascade) is verified correct by code review. Recommend testing in Expo Go / native build OR replace Alert.alert with a cross-platform confirm component (e.g., a Sheet/Modal-based confirm) so destructive flows are testable on web too.",
+        "affected_testIDs": ["kasa-transfer-<id>", "kasa-row-<id>"]
+      }
+    ],
+    "design_issues": [],
+    "react_native_issues": [
+      {
+        "component": "Alert.alert usage (cross-platform)",
+        "issue": "Alert.alert is a no-op on react-native-web — all destructive confirmations (kasa entry delete, kasa_transfer undo, kasa sale undo, bank transaction undo, company delete, bank delete) are silently skipped on web. Either gate web users to a Sheet-based confirm or add a custom platform-aware confirm wrapper. References: /app/frontend/app/kasa.tsx:101, 382, 392; /app/frontend/app/bankalar.tsx:59; /app/frontend/src/components/TransactionList.tsx:45."
+      },
+      {
+        "component": "Deprecated style/prop warnings (RN-Web)",
+        "issue": "Console warnings: '\"shadow*\" style props are deprecated. Use \"boxShadow\"' and 'props.pointerEvents is deprecated. Use style.pointerEvents'. Likely from shared components (Sheet/FAB/Button). Non-blocking. References: /app/frontend/src/components/Sheet.tsx, /app/frontend/src/components/FAB.tsx, /app/frontend/src/components/Button.tsx (inspect shadowColor/shadowOffset/shadowOpacity/shadowRadius + pointerEvents prop)."
+      }
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_3.json"],
+  "action_items": [
+    "Verify T12 (long-press AKTARIM row → 'Geri Al' → posdan gelen restored to 2.788,98 ₺ AND Ziraat balance restored to 1.000,00 ₺) on a native Expo build / Expo Go. Code path in store.tsx deleteTransaction kasa_transfer case is correct.",
+    "Verify T13 (long-press Osman row → 'Sil' → entry + all POS sales + all pending transfers removed AND bank balances reversed) on a native Expo build. Code path in store.tsx deleteKasaEntry is correct (iterates linkedTransfers and subtracts amount from each bank).",
+    "Consider replacing react-native Alert.alert with a cross-platform confirm component (e.g., reuse the existing Sheet component or a tiny custom modal) so destructive flows are testable on web preview AND give a consistent UX. This unblocks regression testing of all undo/delete flows via web.",
+    "Optional cleanup: migrate deprecated shadow* style props to boxShadow and move pointerEvents from prop to style.pointerEvents in shared components."
+  ],
+  "critical_code_review_comments": [
+    "kasa.tsx is ~890 lines — still above the 700-line guideline. Strongly recommend extracting EntryActionSheet (its inline transfer form + history list) into /app/frontend/src/components/kasa/EntryActionSheet.tsx and the two smaller sheets too.",
+    "EntryActionSheet duplicates the transfer-amount validation in two places (canTransfer boolean + submitTransfer's Alert fallback). Since Alert.alert is a no-op on web, the disabled-button state is the only effective web safeguard. Either rely solely on the disabled flag or add a visible inline error <Text> below the amount field.",
+    "store.tsx addKasaTransfer does not validate that amount <= posdan-gelen on the store side — UI does. If the screen is ever bypassed, an over-transfer could leave posdanGelen negative. Recommend adding a guard in addKasaTransfer (or even refusing < 0 in kasaEntryTotals).",
+    "On web, the floor for 'Alert.alert' replacement also affects existing flows in bankalar.tsx (delete bank) and TransactionList.tsx (undo bank/card/company tx). One shared confirm helper would fix all at once.",
+    "Minor: top-right total label currently reads 'POSDAN GELEN' twice (eyebrow + total label). Visually fine on a 390-wide phone but redundant — consider removing the eyebrow OR renaming one to e.g. 'TOPLAM POSDAN GELEN' for clarity."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A", "frontend": "84.6% (11/13 PASS via web; remaining 2 deferred to native build due to RN-Web Alert.alert limitation, store-level code verified by review)" },
+  "seed_data_creation": "Created ephemeral via UI on cleared localStorage: 1 Bank 'Ziraat' (₺1000), 1 KasaEntry 'Osman', 1 KasaTransaction (Tutar 21640 + Pos 2848,50 @ 1,99% + 5%), 1 kasa_transfer 500₺ Osman→Ziraat. Nothing persisted outside the test session.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All UI assertions for T1-T11 verified against a freshly cleared localStorage at viewport 390x1100. The Sheet's footer buttons can sit below the 844px fold — use viewport height >= 1000 OR call element.scrollIntoView({block:'center'}) then element.click() via page.evaluate (page.click() throws 'Element is outside of the viewport' for the Save buttons inside the modal). RN-Web's Alert.alert is a no-op so any flow that ends in Alert.alert([... 'Geri Al'/'Sil' ...]) cannot be triggered from the web preview — those flows must be tested on Expo Go / native or after main agent replaces Alert with a custom modal. testIDs used: kasa-screen, btn-kasa-settings, add-kasa-fab, input-kasa-name, btn-save-kasa-entry, kasa-row-<id>, kasa-action-sheet, input-kasa-tutar, btn-open-pos, input-kasa-pos, btn-submit-kasa, btn-open-transfer, picker-transfer-bank, input-transfer-amount, input-transfer-note, btn-submit-transfer, btn-cancel-kasa, kasa-transfer-<id>, bank-row-<id>, bank-action-sheet, add-bank-fab, input-bank-name, input-bank-balance, btn-save-bank.",
+  "rca_of_issue": "T12/T13 not failures of the feature — they're a known platform gap. Alert.alert from react-native renders a native dialog on iOS/Android but is unimplemented (no-op) on react-native-web. Long-press onLongPress correctly fires (verified by manually inspecting via mouse.down/up sustained for 900ms — no error in console), but the Alert.alert that should follow simply returns. To make these flows testable on web preview AND keep parity with native UX, replace Alert.alert with a cross-platform confirm using the existing Sheet component (or a tiny Modal). Mitigation until then: tests T12/T13 should be run on Expo Go (scan QR) or on a simulator."
+}

@@ -38,7 +38,8 @@ export type TransactionType =
   | 'card_spend' // bireysel kart harcaması -> kart kullanımı arttı
   | 'bank_pay_card' // banka hesabından kart ödemesi -> banka azaldı + kart kullanımı azaldı
   | 'bank_deposit' // banka hesabına para ekle
-  | 'bank_withdraw'; // banka hesabından para çek
+  | 'bank_withdraw' // banka hesabından para çek
+  | 'kasa_transfer'; // Kasa POS bakiyesinden banka hesabına aktarım
 
 export interface Transaction {
   id: string;
@@ -49,6 +50,8 @@ export interface Transaction {
   companyId?: string;
   cardId?: string;
   bankId?: string;
+  kasaEntryId?: string; // kasa_transfer için kaynak Kasa kaydı id
+  kasaEntryName?: string; // snapshot for display
 }
 
 export interface CashCounts {
@@ -118,6 +121,49 @@ export function calcKasa(tx: {
   const gross = (tx.tutar || 0) + (tx.pos || 0);
   const net = gross - commission - tax;
   return { commission, tax, net, gross };
+}
+
+export interface KasaEntryTotals {
+  posdanGelen: number; // (Pos − Komisyon − Vergi) toplamı − bankaya aktarılan
+  nakit: number;       // Tutar (nakit) toplamı
+  netToplam: number;   // posdanGelen + nakit
+  saleCount: number;
+  transferCount: number;
+  totalTransferred: number;
+}
+
+export function kasaEntryTotals(
+  entryId: string,
+  kasaTxs: KasaTransaction[],
+  transactions: Transaction[],
+): KasaEntryTotals {
+  let posdanGelen = 0;
+  let nakit = 0;
+  let saleCount = 0;
+  for (const tx of kasaTxs) {
+    if (tx.entryId !== entryId) continue;
+    const c = calcKasa(tx);
+    posdanGelen += (tx.pos - c.commission - c.tax);
+    nakit += tx.tutar;
+    saleCount++;
+  }
+  let transferCount = 0;
+  let totalTransferred = 0;
+  for (const tx of transactions) {
+    if (tx.type !== 'kasa_transfer') continue;
+    if (tx.kasaEntryId !== entryId) continue;
+    posdanGelen -= tx.amount;
+    totalTransferred += tx.amount;
+    transferCount++;
+  }
+  return {
+    posdanGelen,
+    nakit,
+    netToplam: posdanGelen + nakit,
+    saleCount,
+    transferCount,
+    totalTransferred,
+  };
 }
 
 export interface AppData {

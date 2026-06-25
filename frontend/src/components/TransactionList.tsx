@@ -28,6 +28,7 @@ function meta(type: Transaction['type'], ctx: Context): { label: string; color: 
     if (type === 'bank_deposit') return { label: 'Para Girişi', color: colors.purchase, sign: '+' };
     if (type === 'bank_withdraw') return { label: 'Para Çıkışı', color: colors.debt, sign: '-' };
     if (type === 'bank_pay_card') return { label: 'Kart Ödemesi', color: colors.debt, sign: '-' };
+    if (type === 'kasa_transfer') return { label: 'Kasa Aktarımı', color: colors.asset, sign: '+' };
   }
   return { label: type, color: colors.textPrimary, sign: '+' };
 }

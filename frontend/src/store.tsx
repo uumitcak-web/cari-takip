@@ -39,6 +39,7 @@ interface StoreCtx {
   addKasaTransaction: (tx: Omit<KasaTransaction, 'id' | 'date'>) => Promise<void>;
   deleteKasaTransaction: (id: string) => Promise<void>;
   updateKasaSettings: (patch: Partial<KasaSettings>) => Promise<void>;
+  addKasaTransfer: (entryId: string, entryName: string, bankId: string, amount: number, note?: string) => Promise<void>;
   resetAll: () => Promise<void>;
 }
 
@@ -275,6 +276,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           b.id === tx.bankId ? { ...b, balance: b.balance + tx.amount } : b
         );
         break;
+      case 'kasa_transfer':
+        // Aktarımı geri al: bankadan düş
+        next.banks = next.banks.map((b) =>
+          b.id === tx.bankId ? { ...b, balance: b.balance - tx.amount } : b
+        );
+        break;
     }
     next.transactions = next.transactions.filter((t) => t.id !== id);
     await persist(next);
@@ -317,11 +324,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   };
   const deleteKasaEntry: StoreCtx['deleteKasaEntry'] = async (id) => {
-    await persist({
-      ...data,
-      kasaEntries: (data.kasaEntries || []).filter((e) => e.id !== id),
-      kasaTransactions: (data.kasaTransactions || []).filter((t) => t.entryId !== id),
-    });
+    // Aktarımları (kasa_transfer) bul → her birinin banka etkisini geri al
+    const linkedTransfers = (data.transactions || []).filter(
+      (t) => t.type === 'kasa_transfer' && t.kasaEntryId === id
+    );
+    let next = { ...data };
+    if (linkedTransfers.length > 0) {
+      for (const tx of linkedTransfers) {
+        next.banks = next.banks.map((b) =>
+          b.id === tx.bankId ? { ...b, balance: b.balance - tx.amount } : b
+        );
+      }
+    }
+    next.kasaEntries = (next.kasaEntries || []).filter((e) => e.id !== id);
+    next.kasaTransactions = (next.kasaTransactions || []).filter((t) => t.entryId !== id);
+    next.transactions = next.transactions.filter(
+      (t) => !(t.type === 'kasa_transfer' && t.kasaEntryId === id)
+    );
+    await persist(next);
   };
   const addKasaTransaction: StoreCtx['addKasaTransaction'] = async (tx) => {
     const newTx: KasaTransaction = {
@@ -347,6 +367,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const addKasaTransfer: StoreCtx['addKasaTransfer'] = async (entryId, entryName, bankId, amount, note) => {
+    let next = { ...data };
+    next.banks = next.banks.map((b) =>
+      b.id === bankId ? { ...b, balance: b.balance + amount } : b
+    );
+    const tx: Transaction = {
+      id: uid(),
+      type: 'kasa_transfer',
+      amount,
+      date: new Date().toISOString(),
+      bankId,
+      kasaEntryId: entryId,
+      kasaEntryName: entryName,
+      note,
+    };
+    next.transactions = [tx, ...next.transactions];
+    await persist(next);
+  };
+
   return (
     <Ctx.Provider
       value={{
@@ -360,6 +399,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         updateCashCount, setCashCounts,
         addKasaEntry, updateKasaEntry, deleteKasaEntry,
         addKasaTransaction, deleteKasaTransaction, updateKasaSettings,
+        addKasaTransfer,
         resetAll,
       }}
     >
