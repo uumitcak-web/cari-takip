@@ -262,45 +262,46 @@ function CompanyActionSheet({
   return (
     <Sheet visible={!!company} onClose={onClose} title={company.name} testID="company-action-sheet">
       <View style={styles.balanceCard}>
-        <View style={styles.balanceTopRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.balanceLabel}>GÜNCEL BAKİYE</Text>
-            <Text
-              style={[styles.balanceValue, {
-                color: company.balance > 0 ? colors.debt : company.balance < 0 ? colors.asset : colors.textPrimary
-              }]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.5}
-            >
-              {formatTRY(company.balance)}
-            </Text>
-            <Text style={styles.balanceHint}>
-              {company.balance > 0 ? 'Bu şirkete borçlusunuz' :
-                company.balance < 0 ? 'Bu şirket size borçlu' : 'Hesap denk'}
-            </Text>
-          </View>
-          {(() => {
-            const totalPurchases = transactions
-              .filter((t) => t.type === 'company_purchase')
-              .reduce((s, t) => s + t.amount, 0);
-            const totalPayments = transactions
-              .filter((t) => t.type === 'cash_payment' || t.type === 'card_payment')
-              .reduce((s, t) => s + t.amount, 0);
-            return (
-              <View style={styles.balanceStats}>
-                <Text style={styles.balanceStatLabel}>Toplam Alışlar</Text>
-                <Text style={[styles.balanceStatValue, { color: colors.purchase }]}>
+        <Text style={styles.balanceLabel}>GÜNCEL BAKİYE</Text>
+        <Text
+          style={[styles.balanceValue, {
+            color: company.balance > 0 ? colors.debt : company.balance < 0 ? colors.asset : colors.textPrimary
+          }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.4}
+        >
+          {formatTRY(company.balance)}
+        </Text>
+        <Text style={styles.balanceHint}>
+          {company.balance > 0 ? 'Bu şirkete borçlusunuz' :
+            company.balance < 0 ? 'Bu şirket size borçlu' : 'Hesap denk'}
+        </Text>
+        {(() => {
+          const totalPurchases = transactions
+            .filter((t) => t.type === 'company_purchase')
+            .reduce((s, t) => s + t.amount, 0);
+          const totalPayments = transactions
+            .filter((t) => t.type === 'cash_payment' || t.type === 'card_payment')
+            .reduce((s, t) => s + t.amount, 0);
+          if (totalPurchases === 0 && totalPayments === 0) return null;
+          return (
+            <View style={styles.statsRow}>
+              <View style={styles.statsPill}>
+                <Text style={styles.statsPillLabel}>Alışlar</Text>
+                <Text style={[styles.statsPillValue, { color: colors.purchase }]} numberOfLines={1} adjustsFontSizeToFit>
                   {formatTRY(totalPurchases)}
                 </Text>
-                <Text style={[styles.balanceStatLabel, { marginTop: 6 }]}>Toplam Ödemeler</Text>
-                <Text style={[styles.balanceStatValue, { color: colors.debt }]}>
+              </View>
+              <View style={styles.statsPill}>
+                <Text style={styles.statsPillLabel}>Ödemeler</Text>
+                <Text style={[styles.statsPillValue, { color: colors.debt }]} numberOfLines={1} adjustsFontSizeToFit>
                   {formatTRY(totalPayments)}
                 </Text>
               </View>
-            );
-          })()}
-        </View>
+            </View>
+          );
+        })()}
       </View>
 
       <Picker
@@ -470,25 +471,31 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
     gap: 4,
   },
-  balanceTopRow: {
+  statsRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.md,
+    gap: spacing.sm,
+    marginTop: spacing.md,
   },
-  balanceStats: {
-    minWidth: 120,
-    alignItems: 'flex-end',
+  statsPill: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    borderRadius: radius.base,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  balanceStatLabel: {
+  statsPillLabel: {
     fontSize: 10,
     fontWeight: '600',
     color: colors.textSecondary,
-    letterSpacing: 0.8,
+    letterSpacing: 0.5,
   },
-  balanceStatValue: {
-    fontSize: 13,
+  statsPillValue: {
+    fontSize: 14,
     fontWeight: '800',
-    marginTop: 1,
+    marginTop: 2,
+    letterSpacing: -0.3,
   },
   balanceLabel: { fontSize: 10, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5 },
   balanceValue: { fontSize: 28, fontWeight: '800', letterSpacing: -1 },

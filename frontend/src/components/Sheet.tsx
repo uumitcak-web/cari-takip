@@ -11,6 +11,7 @@ import {
   Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius, spacing } from '../theme';
 
 interface Props {
@@ -22,6 +23,8 @@ interface Props {
 }
 
 export default function Sheet({ visible, onClose, title, children, testID }: Props) {
+  const insets = useSafeAreaInsets();
+
   return (
     <Modal
       visible={visible}
@@ -33,16 +36,13 @@ export default function Sheet({ visible, onClose, title, children, testID }: Pro
       <Pressable style={styles.backdrop} onPress={onClose} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.wrapper}
+        style={[styles.wrapper, { paddingTop: insets.top }]}
         pointerEvents="box-none"
       >
-        <View style={styles.sheet}>
-          <View style={styles.handleWrap}>
-            <View style={styles.handle} />
-          </View>
+        <View style={[styles.sheet, { marginBottom: insets.bottom + 80 }]}>
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
-            <TouchableOpacity onPress={onClose} testID="sheet-close-btn">
+            <TouchableOpacity onPress={onClose} testID="sheet-close-btn" hitSlop={10}>
               <Ionicons name="close" size={24} color={colors.textPrimary} />
             </TouchableOpacity>
           </View>
@@ -66,31 +66,21 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
   },
   sheet: {
     backgroundColor: colors.bg,
-    borderTopLeftRadius: radius.sheet,
-    borderTopRightRadius: radius.sheet,
-    maxHeight: '90%',
-    paddingBottom: spacing.xl,
-  },
-  handleWrap: {
-    alignItems: 'center',
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.border,
+    borderBottomLeftRadius: radius.sheet,
+    borderBottomRightRadius: radius.sheet,
+    flex: 1,
+    paddingBottom: spacing.md,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -104,5 +94,6 @@ const styles = StyleSheet.create({
   body: {
     padding: spacing.xl,
     gap: spacing.md,
+    paddingBottom: spacing.xxl,
   },
 });

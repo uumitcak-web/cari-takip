@@ -51,9 +51,34 @@ export interface Transaction {
   bankId?: string;
 }
 
+export interface CashCounts {
+  d200: number;
+  d100: number;
+  d50: number;
+  d20: number;
+  d10: number;
+  d5: number;
+}
+
+export const DEFAULT_CASH_COUNTS: CashCounts = {
+  d200: 0, d100: 0, d50: 0, d20: 0, d10: 0, d5: 0,
+};
+
+export function cashTotal(c: CashCounts): number {
+  return (
+    (c.d200 || 0) * 200 +
+    (c.d100 || 0) * 100 +
+    (c.d50 || 0) * 50 +
+    (c.d20 || 0) * 20 +
+    (c.d10 || 0) * 10 +
+    (c.d5 || 0) * 5
+  );
+}
+
 export interface AppData {
   companies: Company[];
   banks: Bank[];
   cards: CreditCard[];
   transactions: Transaction[];
+  cashCounts: CashCounts;
 }

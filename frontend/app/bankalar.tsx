@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useStore } from '../src/store';
 import { colors, radius, spacing } from '../src/theme';
 import { formatTRY, parseTRY } from '../src/format';
@@ -12,14 +13,16 @@ import Picker from '../src/components/Picker';
 import EmptyState from '../src/components/EmptyState';
 import FAB from '../src/components/FAB';
 import TransactionList from '../src/components/TransactionList';
-import { Bank } from '../src/types';
+import { Bank, cashTotal, DEFAULT_CASH_COUNTS } from '../src/types';
 
 export default function Bankalar() {
   const { data, addBank, deleteBank, addBankDeposit, addBankWithdraw } = useStore();
+  const router = useRouter();
   const [addOpen, setAddOpen] = useState(false);
   const [actionFor, setActionFor] = useState<Bank | null>(null);
 
-  const totalBalance = data.banks.reduce((s, b) => s + b.balance, 0);
+  const evdeTotal = cashTotal(data.cashCounts || DEFAULT_CASH_COUNTS);
+  const totalBalance = data.banks.reduce((s, b) => s + b.balance, 0) + evdeTotal;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']} testID="bankalar-screen">
@@ -34,14 +37,19 @@ export default function Bankalar() {
         </View>
       </View>
 
-      {data.banks.length === 0 ? (
-        <EmptyState
-          icon="business"
-          title="Henüz banka hesabı yok"
-          subtitle="Banka hesabı eklemek için sağ alttaki + butonuna basın."
-        />
+      {data.banks.length === 0 && evdeTotal === 0 ? (
+        <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+          <EvdeRow total={evdeTotal} onPress={() => router.push('/genel-durum')} />
+          <EmptyState
+            icon="business"
+            title="Henüz banka hesabı yok"
+            subtitle="Banka hesabı eklemek için sağ alttaki + butonuna basın."
+          />
+          <View style={{ height: 100 }} />
+        </ScrollView>
       ) : (
         <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+          <EvdeRow total={evdeTotal} onPress={() => router.push('/genel-durum')} />
           {data.banks.map((b) => (
             <TouchableOpacity
               key={b.id}
@@ -89,6 +97,46 @@ export default function Bankalar() {
         onWithdraw={async (amt, note) => { if (actionFor) await addBankWithdraw(actionFor.id, amt, note); setActionFor(null); }}
       />
     </SafeAreaView>
+  );
+}
+
+function EvdeRow({ total, onPress }: { total: number; onPress: () => void }) {
+  return (
+    <TouchableOpacity
+      style={styles.evdeRow}
+      onPress={onPress}
+      activeOpacity={0.7}
+      testID="evde-card"
+    >
+      <View style={styles.rowLeft}>
+        <View style={styles.evdeIcon}>
+          <Ionicons name="home" size={22} color={colors.debt} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <View style={styles.evdeTitleRow}>
+            <Text style={styles.evdeName}>Evde</Text>
+            <View style={styles.evdeBadge}>
+              <Text style={styles.evdeBadgeText}>NAKİT</Text>
+            </View>
+          </View>
+          <Text style={styles.sub}>Kupür dökümünden hesaplanır</Text>
+        </View>
+      </View>
+      <View style={{ alignItems: 'flex-end' }}>
+        <Text
+          style={[styles.amount, { color: total > 0 ? colors.asset : colors.textSecondary }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
+        >
+          {formatTRY(total)}
+        </Text>
+        <View style={styles.editHint}>
+          <Ionicons name="create-outline" size={11} color={colors.textSecondary} />
+          <Text style={styles.editHintText}>Düzenle</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -218,6 +266,46 @@ const styles = StyleSheet.create({
   name: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
   sub: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
   amount: { fontSize: 16, fontWeight: '800', letterSpacing: -0.5 },
+  evdeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.bg,
+    borderWidth: 1.5,
+    borderColor: colors.debt,
+    borderRadius: radius.card,
+    padding: spacing.lg,
+    justifyContent: 'space-between',
+  },
+  evdeIcon: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  evdeTitleRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+  },
+  evdeName: {
+    fontSize: 16, fontWeight: '800',
+    color: colors.debt, letterSpacing: -0.3,
+  },
+  evdeBadge: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  evdeBadgeText: {
+    fontSize: 9, fontWeight: '800',
+    color: colors.debt, letterSpacing: 0.8,
+  },
+  editHint: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    marginTop: 2,
+  },
+  editHintText: {
+    fontSize: 10, fontWeight: '600',
+    color: colors.textSecondary, letterSpacing: 0.3,
+  },
   balanceCard: {
     backgroundColor: colors.bgSecondary, padding: spacing.lg, borderRadius: radius.card, gap: 4,
   },

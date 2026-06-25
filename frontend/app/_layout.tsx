@@ -64,6 +64,14 @@ function TabsNav() {
           tabBarTestID: 'tab-bankalar',
         }}
       />
+      <Tabs.Screen
+        name="genel-durum"
+        options={{
+          title: 'Genel Durum',
+          tabBarIcon: ({ color, size }) => <Ionicons name="cash" size={size} color={color} />,
+          tabBarTestID: 'tab-genel-durum',
+        }}
+      />
     </Tabs>
   );
 }

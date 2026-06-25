@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import { AppData } from './types';
+import { AppData, DEFAULT_CASH_COUNTS } from './types';
 
 const KEY = 'cari_app_data_v1';
 
@@ -9,6 +9,7 @@ const empty: AppData = {
   banks: [],
   cards: [],
   transactions: [],
+  cashCounts: { ...DEFAULT_CASH_COUNTS },
 };
 
 // On web (preview) prefer localStorage to avoid IndexedDB init delays.
@@ -44,6 +45,7 @@ export async function loadData(): Promise<AppData> {
       banks: parsed.banks || [],
       cards: parsed.cards || [],
       transactions: parsed.transactions || [],
+      cashCounts: { ...DEFAULT_CASH_COUNTS, ...(parsed.cashCounts || {}) },
     };
   } catch (e) {
     console.warn('loadData failed', e);

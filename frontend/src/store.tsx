@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { AppData, Company, Bank, CreditCard, Transaction } from './types';
+import { AppData, Company, Bank, CreditCard, Transaction, CashCounts, DEFAULT_CASH_COUNTS } from './types';
 import { loadData, saveData, uid } from './storage';
 
 interface StoreCtx {
@@ -26,13 +26,19 @@ interface StoreCtx {
   addBankDeposit: (bankId: string, amount: number, note?: string) => Promise<void>;
   addBankWithdraw: (bankId: string, amount: number, note?: string) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
+  // Cash counts (Evde)
+  updateCashCount: (key: keyof CashCounts, value: number) => Promise<void>;
+  setCashCounts: (c: CashCounts) => Promise<void>;
   resetAll: () => Promise<void>;
 }
 
 const Ctx = createContext<StoreCtx | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = useState<AppData>({ companies: [], banks: [], cards: [], transactions: [] });
+  const [data, setData] = useState<AppData>({
+    companies: [], banks: [], cards: [], transactions: [],
+    cashCounts: { ...DEFAULT_CASH_COUNTS },
+  });
   const [ready, setReady] = useState(true);
 
   useEffect(() => {
@@ -263,7 +269,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetAll: StoreCtx['resetAll'] = async () => {
-    await persist({ companies: [], banks: [], cards: [], transactions: [] });
+    await persist({ companies: [], banks: [], cards: [], transactions: [], cashCounts: { ...DEFAULT_CASH_COUNTS } });
+  };
+
+  const updateCashCount: StoreCtx['updateCashCount'] = async (key, value) => {
+    const safe = Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+    await persist({
+      ...data,
+      cashCounts: { ...(data.cashCounts || DEFAULT_CASH_COUNTS), [key]: safe },
+    });
+  };
+
+  const setCashCounts: StoreCtx['setCashCounts'] = async (c) => {
+    await persist({ ...data, cashCounts: { ...c } });
   };
 
   return (
@@ -275,7 +293,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         addCard, updateCard, deleteCard,
         addCompanyPurchase, addCashPayment, addCardPayment, addCardSpend,
         addBankPayCard, addBankDeposit, addBankWithdraw,
-        deleteTransaction, resetAll,
+        deleteTransaction,
+        updateCashCount, setCashCounts,
+        resetAll,
       }}
     >
       {children}

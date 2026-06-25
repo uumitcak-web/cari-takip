@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../src/store';
 import { colors, radius, spacing } from '../src/theme';
 import { formatTRY, nextStatementDate, daysUntil } from '../src/format';
+import { cashTotal, DEFAULT_CASH_COUNTS } from '../src/types';
 import { useRouter } from 'expo-router';
 
 export default function Dashboard() {
@@ -18,11 +19,13 @@ export default function Dashboard() {
     const totalCredit = data.companies.reduce(
       (sum, c) => sum + (c.balance < 0 ? -c.balance : 0), 0
     );
-    const totalBank = data.banks.reduce((sum, b) => sum + b.balance, 0);
+    const totalBankOnly = data.banks.reduce((sum, b) => sum + b.balance, 0);
+    const evde = cashTotal(data.cashCounts || DEFAULT_CASH_COUNTS);
+    const totalBank = totalBankOnly + evde;
     const totalCardDebt = data.cards.reduce((sum, c) => sum + c.used, 0);
     const totalLimit = data.cards.reduce((sum, c) => sum + c.limit, 0);
     const net = totalBank - totalDebt - totalCardDebt + totalCredit;
-    return { totalDebt, totalCredit, totalBank, totalCardDebt, totalLimit, net };
+    return { totalDebt, totalCredit, totalBank, totalCardDebt, totalLimit, net, evde };
   }, [data]);
 
   const unpaidCompanies = useMemo(
