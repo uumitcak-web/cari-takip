@@ -26,9 +26,9 @@ function TabsNav() {
           paddingTop: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
-          letterSpacing: 0.3,
+          letterSpacing: 0.2,
         },
       }}
     >
@@ -65,9 +65,17 @@ function TabsNav() {
         }}
       />
       <Tabs.Screen
+        name="kasa"
+        options={{
+          title: 'Kasa',
+          tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />,
+          tabBarTestID: 'tab-kasa',
+        }}
+      />
+      <Tabs.Screen
         name="genel-durum"
         options={{
-          title: 'Genel Durum',
+          title: 'Kupür',
           tabBarIcon: ({ color, size }) => <Ionicons name="cash" size={size} color={color} />,
           tabBarTestID: 'tab-genel-durum',
         }}

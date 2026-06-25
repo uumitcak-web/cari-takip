@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import { AppData, DEFAULT_CASH_COUNTS } from './types';
+import { AppData, DEFAULT_CASH_COUNTS, DEFAULT_KASA_SETTINGS } from './types';
 
 const KEY = 'cari_app_data_v1';
 
@@ -10,6 +10,9 @@ const empty: AppData = {
   cards: [],
   transactions: [],
   cashCounts: { ...DEFAULT_CASH_COUNTS },
+  kasaEntries: [],
+  kasaTransactions: [],
+  kasaSettings: { ...DEFAULT_KASA_SETTINGS },
 };
 
 // On web (preview) prefer localStorage to avoid IndexedDB init delays.
@@ -39,13 +42,16 @@ export async function loadData(): Promise<AppData> {
       raw = await AsyncStorage.getItem(KEY);
     }
     if (!raw) return empty;
-    const parsed = JSON.parse(raw) as AppData;
+    const parsed = JSON.parse(raw) as Partial<AppData>;
     return {
       companies: parsed.companies || [],
       banks: parsed.banks || [],
       cards: parsed.cards || [],
       transactions: parsed.transactions || [],
       cashCounts: { ...DEFAULT_CASH_COUNTS, ...(parsed.cashCounts || {}) },
+      kasaEntries: parsed.kasaEntries || [],
+      kasaTransactions: parsed.kasaTransactions || [],
+      kasaSettings: { ...DEFAULT_KASA_SETTINGS, ...(parsed.kasaSettings || {}) },
     };
   } catch (e) {
     console.warn('loadData failed', e);

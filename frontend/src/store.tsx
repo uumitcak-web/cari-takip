@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { AppData, Company, Bank, CreditCard, Transaction, CashCounts, DEFAULT_CASH_COUNTS } from './types';
+import {
+  AppData, Company, Bank, CreditCard, Transaction, CashCounts, DEFAULT_CASH_COUNTS,
+  KasaEntry, KasaTransaction, KasaSettings, DEFAULT_KASA_SETTINGS,
+} from './types';
 import { loadData, saveData, uid } from './storage';
 
 interface StoreCtx {
@@ -29,6 +32,13 @@ interface StoreCtx {
   // Cash counts (Evde)
   updateCashCount: (key: keyof CashCounts, value: number) => Promise<void>;
   setCashCounts: (c: CashCounts) => Promise<void>;
+  // Kasa
+  addKasaEntry: (name: string) => Promise<void>;
+  updateKasaEntry: (id: string, patch: Partial<KasaEntry>) => Promise<void>;
+  deleteKasaEntry: (id: string) => Promise<void>;
+  addKasaTransaction: (tx: Omit<KasaTransaction, 'id' | 'date'>) => Promise<void>;
+  deleteKasaTransaction: (id: string) => Promise<void>;
+  updateKasaSettings: (patch: Partial<KasaSettings>) => Promise<void>;
   resetAll: () => Promise<void>;
 }
 
@@ -38,6 +48,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<AppData>({
     companies: [], banks: [], cards: [], transactions: [],
     cashCounts: { ...DEFAULT_CASH_COUNTS },
+    kasaEntries: [], kasaTransactions: [],
+    kasaSettings: { ...DEFAULT_KASA_SETTINGS },
   });
   const [ready, setReady] = useState(true);
 
@@ -269,7 +281,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetAll: StoreCtx['resetAll'] = async () => {
-    await persist({ companies: [], banks: [], cards: [], transactions: [], cashCounts: { ...DEFAULT_CASH_COUNTS } });
+    await persist({
+      companies: [], banks: [], cards: [], transactions: [],
+      cashCounts: { ...DEFAULT_CASH_COUNTS },
+      kasaEntries: [], kasaTransactions: [],
+      kasaSettings: { ...DEFAULT_KASA_SETTINGS },
+    });
   };
 
   const updateCashCount: StoreCtx['updateCashCount'] = async (key, value) => {
@@ -284,6 +301,52 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     await persist({ ...data, cashCounts: { ...c } });
   };
 
+  // ---------- Kasa ----------
+  const addKasaEntry: StoreCtx['addKasaEntry'] = async (name) => {
+    const entry: KasaEntry = {
+      id: uid(),
+      name: name.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    await persist({ ...data, kasaEntries: [...(data.kasaEntries || []), entry] });
+  };
+  const updateKasaEntry: StoreCtx['updateKasaEntry'] = async (id, patch) => {
+    await persist({
+      ...data,
+      kasaEntries: (data.kasaEntries || []).map((e) => (e.id === id ? { ...e, ...patch } : e)),
+    });
+  };
+  const deleteKasaEntry: StoreCtx['deleteKasaEntry'] = async (id) => {
+    await persist({
+      ...data,
+      kasaEntries: (data.kasaEntries || []).filter((e) => e.id !== id),
+      kasaTransactions: (data.kasaTransactions || []).filter((t) => t.entryId !== id),
+    });
+  };
+  const addKasaTransaction: StoreCtx['addKasaTransaction'] = async (tx) => {
+    const newTx: KasaTransaction = {
+      id: uid(),
+      date: new Date().toISOString(),
+      ...tx,
+    };
+    await persist({
+      ...data,
+      kasaTransactions: [newTx, ...(data.kasaTransactions || [])],
+    });
+  };
+  const deleteKasaTransaction: StoreCtx['deleteKasaTransaction'] = async (id) => {
+    await persist({
+      ...data,
+      kasaTransactions: (data.kasaTransactions || []).filter((t) => t.id !== id),
+    });
+  };
+  const updateKasaSettings: StoreCtx['updateKasaSettings'] = async (patch) => {
+    await persist({
+      ...data,
+      kasaSettings: { ...(data.kasaSettings || DEFAULT_KASA_SETTINGS), ...patch },
+    });
+  };
+
   return (
     <Ctx.Provider
       value={{
@@ -295,6 +358,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         addBankPayCard, addBankDeposit, addBankWithdraw,
         deleteTransaction,
         updateCashCount, setCashCounts,
+        addKasaEntry, updateKasaEntry, deleteKasaEntry,
+        addKasaTransaction, deleteKasaTransaction, updateKasaSettings,
         resetAll,
       }}
     >
