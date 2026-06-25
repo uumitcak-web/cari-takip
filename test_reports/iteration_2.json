@@ -1,0 +1,23 @@
+{
+  "summary": "Frontend-only verification of the Kasa tab live POS calculation breakdown reordering. Tested full happy-path flow on mobile viewport (390x900): create 'Osman' kasa entry → open action sheet → enter Tutar=21640 → expand POS → enter Pos=2848,50 → verify live calcBox rows. All 7 rows render in the exact requested order (Pos → Komisyon → Vergi → Toplam Kesinti → Pos Net → + Nakit → NET TOPLAM) with the exact expected values (2.848,50 / −56,69 / −2,83 / −59,52 / 2.788,98 / 21.640,00 / 24.428,98 ₺). Old labels ('Brüt 24.488,50', 'Tutar (nakit)') are no longer present in the calc box. Transaction saves correctly and shows NET 24.428,98 ₺ in HAREKET GEÇMİŞİ and the main Kasa list. Settings gear → Kaydet flow persists and the settings sheet closes. No backend involved (offline AsyncStorage/localStorage). No red screen / no page errors.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_2.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "kasa.tsx is ~810 lines; consider splitting AddEntrySheet, EntryActionSheet, SettingsSheet, and CalcRow into separate files under /app/frontend/app/kasa/ or /app/frontend/src/components/kasa/ for maintainability (>700 line guideline).",
+    "Console warnings observed (non-blocking, RN web compatibility): 'shadow* style props are deprecated. Use boxShadow' and 'props.pointerEvents is deprecated. Use style.pointerEvents'. Origin is likely in shared components (Sheet/FAB/Button) — main agent may want to migrate to non-deprecated APIs.",
+    "calcBox container has no testID; added DOM-text-based assertions worked, but adding testID='kasa-live-calc' to the calcBox View and individual testIDs to each CalcRow would make future regression tests more robust."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A", "frontend": "100%" },
+  "seed_data_creation": "Created one ephemeral KasaEntry 'Osman' and one POS transaction via UI on a freshly cleared localStorage; nothing persisted outside the test session.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bug fix verified end-to-end. CalcRow ordering in /app/frontend/app/kasa.tsx (lines ~432-466) matches the user's requested step-by-step breakdown. Math (calcKasa in /app/frontend/src/types.ts) produces the correct 24.428,98 ₺. If retesting, use viewport height >= 850 because the modal save buttons can sit just below 844px; use scrollIntoView+click via page.evaluate for buttons in the modal footer. Sheet opens from TOP and contains both inputs and history scrollable in a single column."
+}

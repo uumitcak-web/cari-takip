@@ -431,9 +431,7 @@ function EntryActionSheet({
           {/* Canlı hesap */}
           {(posN > 0 || tutarN > 0) && (
             <View style={styles.calcBox}>
-              <CalcRow label="Tutar (nakit)" value={formatTRY(tutarN)} />
               <CalcRow label="Pos" value={formatTRY(posN)} />
-              <View style={styles.calcSeparator} />
               <CalcRow
                 label={`Komisyon (Pos × %${formatPct(commN)})`}
                 value={`−${formatTRY(calc.commission)}`}
@@ -444,9 +442,26 @@ function EntryActionSheet({
                 value={`−${formatTRY(calc.tax)}`}
                 negative
               />
+              <CalcRow
+                label="Toplam Kesinti"
+                value={`−${formatTRY(calc.commission + calc.tax)}`}
+                negative
+                bold
+              />
               <View style={styles.calcSeparator} />
-              <CalcRow label="Brüt" value={formatTRY(calc.gross)} muted />
-              <CalcRow label="NET TOPLAM" value={formatTRY(calc.net)} bold positive />
+              <CalcRow
+                label="Pos Net (Pos − Kesinti)"
+                value={formatTRY(posN - calc.commission - calc.tax)}
+                bold
+              />
+              <CalcRow label="+ Nakit (Tutar)" value={formatTRY(tutarN)} />
+              <View style={styles.calcSeparator} />
+              <CalcRow
+                label="NET TOPLAM"
+                value={formatTRY(calc.net)}
+                bold
+                positive
+              />
             </View>
           )}
         </View>
