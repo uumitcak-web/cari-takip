@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -185,11 +185,7 @@ function CompanyActionSheet({
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [cardId, setCardId] = useState('');
-  const [items, setItems] = useState<{ adet: string; fiyat: string }[]>([
-    { adet: '', fiyat: '' },
-    { adet: '', fiyat: '' },
-    { adet: '', fiyat: '' },
-  ]);
+  const [items, setItems] = useState<{ adet: string; fiyat: string }[]>([]);
 
   const itemsTotal = items.reduce((sum, it) => {
     const a = parseTRY(it.adet);
@@ -205,11 +201,7 @@ function CompanyActionSheet({
       setAmount('');
       setNote('');
       setCardId(cards[0]?.id || '');
-      setItems([
-        { adet: '', fiyat: '' },
-        { adet: '', fiyat: '' },
-        { adet: '', fiyat: '' },
-      ]);
+      setItems([]);
     }
   }, [company, cards]);
 
@@ -219,6 +211,12 @@ function CompanyActionSheet({
 
   const updateItem = (idx: number, field: 'adet' | 'fiyat', val: string) => {
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [field]: val } : it)));
+  };
+  const addItem = () => {
+    if (items.length < 5) setItems((prev) => [...prev, { adet: '', fiyat: '' }]);
+  };
+  const removeItem = (idx: number) => {
+    setItems((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const submit = () => {
@@ -300,52 +298,72 @@ function CompanyActionSheet({
       )}
 
       {(mode === 'purchase' || mode === 'cash' || mode === 'card') && (
-        <View style={styles.itemsBox}>
-          <Text style={styles.itemsHeader}>ADET × FİYAT (OPSİYONEL)</Text>
-          {items.map((it, idx) => {
-            const a = parseTRY(it.adet);
-            const f = parseTRY(it.fiyat);
-            const sub = a > 0 && f > 0 ? a * f : 0;
-            return (
-              <View key={idx} style={styles.itemRow}>
-                <View style={styles.itemCell}>
-                  <Text style={styles.itemLabel}>Adet</Text>
-                  <Field
-                    label=""
-                    value={it.adet}
-                    onChangeText={(v) => updateItem(idx, 'adet', v)}
-                    keyboardType="numeric"
-                    placeholder="0"
-                    testID={`input-item-adet-${idx}`}
-                    style={styles.itemInput}
-                  />
-                </View>
-                <Text style={styles.itemX}>×</Text>
-                <View style={styles.itemCell}>
-                  <Text style={styles.itemLabel}>Fiyat</Text>
-                  <Field
-                    label=""
-                    value={it.fiyat}
-                    onChangeText={(v) => updateItem(idx, 'fiyat', v)}
-                    keyboardType="numeric"
-                    placeholder="0,00"
-                    testID={`input-item-fiyat-${idx}`}
-                    style={styles.itemInput}
-                  />
-                </View>
-                <View style={styles.itemSubWrap}>
-                  <Text style={styles.itemLabel}>=</Text>
-                  <Text style={[styles.itemSub, sub > 0 && { color: colors.textPrimary }]}>
-                    {sub > 0 ? formatTRY(sub, false) : '–'}
-                  </Text>
-                </View>
+        <View>
+          {items.length === 0 ? (
+            <TouchableOpacity
+              onPress={addItem}
+              style={styles.addItemBtn}
+              testID="btn-add-item"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="add-circle-outline" size={16} color={colors.textPrimary} />
+              <Text style={styles.addItemText}>Adet × Fiyat ile hesapla</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.itemsBox}>
+              <View style={styles.itemsBoxHeader}>
+                <Text style={styles.itemsHeader}>ADET × FİYAT</Text>
+                <Text style={styles.itemsCount}>{items.length}/5</Text>
               </View>
-            );
-          })}
-          {hasItems && (
-            <View style={styles.itemsTotal}>
-              <Text style={styles.itemsTotalLabel}>TOPLAM</Text>
-              <Text style={styles.itemsTotalValue}>{formatTRY(itemsTotal)}</Text>
+              {items.map((it, idx) => {
+                const a = parseTRY(it.adet);
+                const f = parseTRY(it.fiyat);
+                const sub = a > 0 && f > 0 ? a * f : 0;
+                return (
+                  <View key={idx} style={styles.itemRow}>
+                    <TextInput
+                      value={it.adet}
+                      onChangeText={(v) => updateItem(idx, 'adet', v)}
+                      keyboardType="numeric"
+                      placeholder="Adet"
+                      placeholderTextColor={colors.textSecondary}
+                      style={styles.itemMiniInput}
+                      testID={`input-item-adet-${idx}`}
+                    />
+                    <Text style={styles.itemX}>×</Text>
+                    <TextInput
+                      value={it.fiyat}
+                      onChangeText={(v) => updateItem(idx, 'fiyat', v)}
+                      keyboardType="numeric"
+                      placeholder="Fiyat"
+                      placeholderTextColor={colors.textSecondary}
+                      style={styles.itemMiniInput}
+                      testID={`input-item-fiyat-${idx}`}
+                    />
+                    <Text style={[styles.itemSubMini, sub > 0 && { color: colors.textPrimary }]}>
+                      {sub > 0 ? formatTRY(sub, false) : '–'}
+                    </Text>
+                    <TouchableOpacity onPress={() => removeItem(idx)} testID={`btn-remove-item-${idx}`} hitSlop={8}>
+                      <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+              <View style={styles.itemsFooter}>
+                {items.length < 5 ? (
+                  <TouchableOpacity onPress={addItem} style={styles.addRowBtn} testID="btn-add-item-row">
+                    <Ionicons name="add" size={14} color={colors.textPrimary} />
+                    <Text style={styles.addRowText}>Satır Ekle</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View />
+                )}
+                {hasItems && (
+                  <Text style={styles.itemsTotalInline}>
+                    Toplam: <Text style={{ fontWeight: '800', color: colors.textPrimary }}>{formatTRY(itemsTotal)}</Text>
+                  </Text>
+                )}
+              </View>
             </View>
           )}
         </View>
@@ -432,68 +450,96 @@ const styles = StyleSheet.create({
   cancelText: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
   itemsBox: {
     backgroundColor: colors.bgSecondary,
-    borderRadius: radius.card,
-    padding: spacing.md,
-    gap: spacing.sm,
+    borderRadius: radius.base,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: 6,
   },
-  itemsHeader: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    letterSpacing: 1.2,
-  },
-  itemRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: spacing.xs,
-  },
-  itemCell: {
-    flex: 1,
-  },
-  itemLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: 2,
-  },
-  itemInput: {
-    height: 40,
-    fontSize: 14,
-  },
-  itemX: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    paddingBottom: 12,
-  },
-  itemSubWrap: {
-    minWidth: 80,
-    alignItems: 'flex-end',
-    paddingBottom: 8,
-  },
-  itemSub: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.textSecondary,
-  },
-  itemsTotal: {
+  itemsBoxHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    marginBottom: 2,
   },
-  itemsTotalLabel: {
-    fontSize: 12,
+  itemsHeader: {
+    fontSize: 10,
     fontWeight: '700',
     color: colors.textSecondary,
     letterSpacing: 1.2,
   },
-  itemsTotalValue: {
-    fontSize: 18,
-    fontWeight: '800',
+  itemsCount: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  itemMiniInput: {
+    flex: 1,
+    height: 34,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    backgroundColor: colors.bg,
+    fontSize: 13,
     color: colors.textPrimary,
-    letterSpacing: -0.5,
+    minWidth: 0,
+  },
+  itemX: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  itemSubMini: {
+    minWidth: 70,
+    textAlign: 'right',
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  itemsFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  addRowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  addRowText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  itemsTotalInline: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  addItemBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: radius.base,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
+  },
+  addItemText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textPrimary,
   },
 });
