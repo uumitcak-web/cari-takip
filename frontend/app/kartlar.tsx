@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../src/store';
-import { colors, radius, spacing, cardPalettes } from '../src/theme';
+import { colors, radius, spacing } from '../src/theme';
 import { formatTRY, nextStatementDate, daysUntil, parseTRY } from '../src/format';
 import Sheet from '../src/components/Sheet';
 import Field from '../src/components/Field';
@@ -37,8 +37,7 @@ export default function Kartlar() {
         />
       ) : (
         <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-          {data.cards.map((c, idx) => {
-            const palette = cardPalettes[idx % cardPalettes.length];
+          {data.cards.map((c) => {
             const remaining = c.limit - c.used;
             const pct = c.limit > 0 ? Math.min(100, (c.used / c.limit) * 100) : 0;
             const stmt = nextStatementDate(c.statementDay);
@@ -56,32 +55,35 @@ export default function Kartlar() {
                     { text: 'Sil', style: 'destructive', onPress: () => deleteCard(c.id) },
                   ]);
                 }}
-                activeOpacity={0.9}
+                activeOpacity={0.7}
                 testID={`card-tile-${c.id}`}
               >
-                <View style={[styles.cardVisual, { backgroundColor: palette[0] }]}>
-                  <View style={[styles.cardOverlay, { backgroundColor: palette[1] }]} />
+                <View style={styles.cardVisual}>
                   <View style={styles.cardTop}>
-                    <View>
+                    <View style={{ flex: 1 }}>
                       <Text style={styles.cardBank}>{c.bankName}</Text>
                       <Text style={styles.cardName}>{c.name}</Text>
                     </View>
-                    <Ionicons name="card" size={28} color="rgba(255,255,255,0.85)" />
+                    <View style={styles.iconCircle}>
+                      <Ionicons name="card" size={20} color={colors.textPrimary} />
+                    </View>
                   </View>
 
                   <View style={styles.cardMid}>
                     <Text style={styles.cardLabel}>KALAN LİMİT</Text>
-                    <Text style={styles.cardAmount}>{formatTRY(remaining)}</Text>
+                    <Text style={[styles.cardAmount, { color: remaining >= 0 ? colors.asset : colors.debt }]}>
+                      {formatTRY(remaining)}
+                    </Text>
                   </View>
 
                   <View style={styles.cardBar}>
-                    <View style={[styles.cardBarFill, { width: `${pct}%` }]} />
+                    <View style={[styles.cardBarFill, { width: `${pct}%`, backgroundColor: pct > 80 ? colors.debt : colors.textPrimary }]} />
                   </View>
 
                   <View style={styles.cardBottom}>
                     <View>
                       <Text style={styles.cardLabel}>HARCANAN</Text>
-                      <Text style={styles.cardSmall}>{formatTRY(c.used)}</Text>
+                      <Text style={[styles.cardSmall, { color: colors.debt }]}>{formatTRY(c.used)}</Text>
                     </View>
                     <View>
                       <Text style={styles.cardLabel}>LİMİT</Text>
@@ -204,8 +206,28 @@ function CardActionSheet({
   const submit = () => {
     const n = parseTRY(amount);
     if (!n || n <= 0) return;
-    if (mode === 'spend') onSpend(n, note || undefined);
-    else if (mode === 'pay' && bankId) onPay(bankId, n, note || undefined);
+    if (mode === 'spend') {
+      const remaining = card.limit - card.used;
+      if (n > remaining) {
+        Alert.alert(
+          'Limit Aşımı',
+          `Bu kartın kalan limiti ${formatTRY(remaining)}. ${formatTRY(n)} tutarında harcama yapılamaz.`,
+          [{ text: 'Tamam', style: 'cancel' }]
+        );
+        return;
+      }
+      onSpend(n, note || undefined);
+    } else if (mode === 'pay' && bankId) {
+      if (n > card.used) {
+        Alert.alert(
+          'Fazladan Ödeme Yapılamaz',
+          `Bu kartın borcu sadece ${formatTRY(card.used)}. ${formatTRY(n)} tutarında ödeme yapılamaz.`,
+          [{ text: 'Tamam', style: 'cancel' }]
+        );
+        return;
+      }
+      onPay(bankId, n, note || undefined);
+    }
   };
 
   return (
@@ -265,37 +287,39 @@ const styles = StyleSheet.create({
   count: { fontSize: 14, fontWeight: '700', color: colors.textSecondary, paddingBottom: 6 },
   list: { padding: spacing.xl, gap: spacing.lg, paddingTop: spacing.sm },
   cardVisual: {
-    aspectRatio: 1.58,
+    aspectRatio: 1.7,
     borderRadius: radius.card,
     padding: spacing.lg,
     overflow: 'hidden',
     justifyContent: 'space-between',
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  cardOverlay: {
-    position: 'absolute',
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    opacity: 0.55,
-    right: -80,
-    top: -80,
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.bgSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  cardBank: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '600', letterSpacing: 1.2, textTransform: 'uppercase' },
-  cardName: { color: colors.white, fontSize: 18, fontWeight: '800', marginTop: 2, letterSpacing: -0.3 },
+  cardBank: { color: colors.textSecondary, fontSize: 11, fontWeight: '600', letterSpacing: 1.2, textTransform: 'uppercase' },
+  cardName: { color: colors.textPrimary, fontSize: 18, fontWeight: '800', marginTop: 2, letterSpacing: -0.3 },
   cardMid: { gap: 2 },
-  cardLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '700', letterSpacing: 1.2 },
-  cardAmount: { color: colors.white, fontSize: 28, fontWeight: '800', letterSpacing: -1 },
+  cardLabel: { color: colors.textSecondary, fontSize: 10, fontWeight: '700', letterSpacing: 1.2 },
+  cardAmount: { fontSize: 28, fontWeight: '800', letterSpacing: -1 },
   cardBar: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: colors.bgSecondary,
     overflow: 'hidden',
     marginTop: 8,
   },
-  cardBarFill: { height: '100%', backgroundColor: colors.white, borderRadius: 3 },
+  cardBarFill: { height: '100%', borderRadius: 3 },
   cardBottom: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  cardSmall: { color: colors.white, fontSize: 13, fontWeight: '700', marginTop: 2 },
+  cardSmall: { color: colors.textPrimary, fontSize: 13, fontWeight: '700', marginTop: 2 },
   cardMeta: {
     paddingHorizontal: spacing.sm,
     paddingTop: 6,

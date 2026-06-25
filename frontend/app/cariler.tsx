@@ -95,8 +95,7 @@ export default function Cariler() {
         company={actionFor}
         onClose={() => setActionFor(null)}
         cards={data.cards}
-        transactions={actionFor ? data.transactions.filter((t) => t.companyId === actionFor.id) : []}
-        onPurchase={async (amt, note) => {
+        transactions={actionFor ? data.transactions.filter((t) => t.companyId === actionFor.id) : []}        onPurchase={async (amt, note) => {
           if (actionFor) await addCompanyPurchase(actionFor.id, amt, note);
           setActionFor(null);
         }}
@@ -176,7 +175,7 @@ function CompanyActionSheet({
 }: {
   company: Company | null;
   onClose: () => void;
-  cards: { id: string; name: string }[];
+  cards: import('../src/types').CreditCard[];
   transactions: import('../src/types').Transaction[];
   onPurchase: (amt: number, note?: string) => void;
   onCash: (amt: number, note?: string) => void;
@@ -201,9 +200,41 @@ function CompanyActionSheet({
   const submit = () => {
     const n = parseTRY(amount);
     if (!n || n <= 0) return;
-    if (mode === 'purchase') onPurchase(n, note || undefined);
-    else if (mode === 'cash') onCash(n, note || undefined);
-    else if (mode === 'card' && cardId) onCard(cardId, n, note || undefined);
+    if (mode === 'purchase') {
+      onPurchase(n, note || undefined);
+    } else if (mode === 'cash') {
+      if (n > company!.balance) {
+        Alert.alert(
+          'Fazladan Ödeme Yapılamaz',
+          `Bu şirkete borcunuz sadece ${formatTRY(company!.balance)}. ${formatTRY(n)} tutarında ödeme yapılamaz.`,
+          [{ text: 'Tamam', style: 'cancel' }]
+        );
+        return;
+      }
+      onCash(n, note || undefined);
+    } else if (mode === 'card' && cardId) {
+      const selectedCard = cards.find((c) => c.id === cardId);
+      if (selectedCard) {
+        const remaining = selectedCard.limit - selectedCard.used;
+        if (n > remaining) {
+          Alert.alert(
+            'Limit Aşımı',
+            `${selectedCard.name} kartının kalan limiti ${formatTRY(remaining)}. ${formatTRY(n)} tutarında işlem yapılamaz.`,
+            [{ text: 'Tamam', style: 'cancel' }]
+          );
+          return;
+        }
+      }
+      if (n > company!.balance) {
+        Alert.alert(
+          'Fazladan Ödeme Yapılamaz',
+          `Bu şirkete borcunuz sadece ${formatTRY(company!.balance)}. ${formatTRY(n)} tutarında ödeme yapılamaz.`,
+          [{ text: 'Tamam', style: 'cancel' }]
+        );
+        return;
+      }
+      onCard(cardId, n, note || undefined);
+    }
   };
 
   return (
