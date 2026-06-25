@@ -36,9 +36,16 @@ export default function Kasa() {
   const [actionFor, setActionFor] = useState<KasaEntry | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // Sum of "posdan gelen" across all entries
-  const grandPosdanGelen = useMemo(() => {
-    return entries.reduce((s, e) => s + kasaEntryTotals(e.id, kasaTxs, transactions).posdanGelen, 0);
+  // Aggregate totals across all entries
+  const grandTotals = useMemo(() => {
+    let posdanGelen = 0;
+    let nakit = 0;
+    for (const e of entries) {
+      const t = kasaEntryTotals(e.id, kasaTxs, transactions);
+      posdanGelen += t.posdanGelen;
+      nakit += t.nakit;
+    }
+    return { posdanGelen, nakit, netToplam: posdanGelen + nakit };
   }, [entries, kasaTxs, transactions]);
 
   return (
@@ -48,17 +55,6 @@ export default function Kasa() {
           <Text style={styles.eyebrow}>POSDAN GELEN</Text>
           <Text style={styles.title}>Kasa</Text>
         </View>
-        <View style={{ alignItems: 'flex-end', maxWidth: 180 }}>
-          <Text style={styles.totalLabel}>POSDAN GELEN</Text>
-          <Text
-            style={[styles.total, { color: grandPosdanGelen > 0 ? colors.asset : colors.textSecondary }]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.5}
-          >
-            {formatTRY(grandPosdanGelen)}
-          </Text>
-        </View>
         <TouchableOpacity
           style={styles.settingsBtn}
           onPress={() => setSettingsOpen(true)}
@@ -66,6 +62,48 @@ export default function Kasa() {
         >
           <Ionicons name="settings-outline" size={18} color={colors.textPrimary} />
         </TouchableOpacity>
+      </View>
+
+      {/* Tüm kayıtların özet kartı */}
+      <View style={styles.grandBalanceWrap}>
+        <View style={styles.balanceCard} testID="kasa-grand-balance">
+          <View style={styles.balanceSplitRow}>
+            <View style={styles.balanceSplitCol}>
+              <Text style={styles.splitLabel}>POSTAN GELEN</Text>
+              <Text
+                style={[styles.splitValue, { color: grandTotals.posdanGelen > 0 ? colors.asset : grandTotals.posdanGelen < 0 ? colors.debt : colors.textSecondary }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
+                {formatTRY(grandTotals.posdanGelen)}
+              </Text>
+            </View>
+            <View style={styles.balanceSplitDivider} />
+            <View style={styles.balanceSplitCol}>
+              <Text style={styles.splitLabel}>NAKİT</Text>
+              <Text
+                style={[styles.splitValue, { color: grandTotals.nakit > 0 ? colors.textPrimary : colors.textSecondary }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
+                {formatTRY(grandTotals.nakit)}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.netToplamRow}>
+            <Text style={styles.netToplamLabel}>NET TOPLAM</Text>
+            <Text
+              style={[styles.netToplamValue, { color: grandTotals.netToplam >= 0 ? colors.asset : colors.debt }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
+              {formatTRY(grandTotals.netToplam)}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.ratesBar}>
@@ -731,6 +769,10 @@ const styles = StyleSheet.create({
   },
 
   list: { paddingHorizontal: spacing.xl, gap: spacing.sm, paddingTop: spacing.sm },
+  grandBalanceWrap: {
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.md,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
