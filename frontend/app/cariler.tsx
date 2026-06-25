@@ -185,6 +185,19 @@ function CompanyActionSheet({
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [cardId, setCardId] = useState('');
+  const [items, setItems] = useState<{ adet: string; fiyat: string }[]>([
+    { adet: '', fiyat: '' },
+    { adet: '', fiyat: '' },
+    { adet: '', fiyat: '' },
+  ]);
+
+  const itemsTotal = items.reduce((sum, it) => {
+    const a = parseTRY(it.adet);
+    const f = parseTRY(it.fiyat);
+    if (a > 0 && f > 0) return sum + a * f;
+    return sum;
+  }, 0);
+  const hasItems = itemsTotal > 0;
 
   React.useEffect(() => {
     if (company) {
@@ -192,13 +205,24 @@ function CompanyActionSheet({
       setAmount('');
       setNote('');
       setCardId(cards[0]?.id || '');
+      setItems([
+        { adet: '', fiyat: '' },
+        { adet: '', fiyat: '' },
+        { adet: '', fiyat: '' },
+      ]);
     }
   }, [company, cards]);
 
   if (!company) return null;
 
+  const finalAmount = hasItems ? itemsTotal : parseTRY(amount);
+
+  const updateItem = (idx: number, field: 'adet' | 'fiyat', val: string) => {
+    setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [field]: val } : it)));
+  };
+
   const submit = () => {
-    const n = parseTRY(amount);
+    const n = finalAmount;
     if (!n || n <= 0) return;
     if (mode === 'purchase') {
       onPurchase(n, note || undefined);
@@ -275,13 +299,66 @@ function CompanyActionSheet({
         />
       )}
 
+      {(mode === 'purchase' || mode === 'cash' || mode === 'card') && (
+        <View style={styles.itemsBox}>
+          <Text style={styles.itemsHeader}>ADET × FİYAT (OPSİYONEL)</Text>
+          {items.map((it, idx) => {
+            const a = parseTRY(it.adet);
+            const f = parseTRY(it.fiyat);
+            const sub = a > 0 && f > 0 ? a * f : 0;
+            return (
+              <View key={idx} style={styles.itemRow}>
+                <View style={styles.itemCell}>
+                  <Text style={styles.itemLabel}>Adet</Text>
+                  <Field
+                    label=""
+                    value={it.adet}
+                    onChangeText={(v) => updateItem(idx, 'adet', v)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                    testID={`input-item-adet-${idx}`}
+                    style={styles.itemInput}
+                  />
+                </View>
+                <Text style={styles.itemX}>×</Text>
+                <View style={styles.itemCell}>
+                  <Text style={styles.itemLabel}>Fiyat</Text>
+                  <Field
+                    label=""
+                    value={it.fiyat}
+                    onChangeText={(v) => updateItem(idx, 'fiyat', v)}
+                    keyboardType="numeric"
+                    placeholder="0,00"
+                    testID={`input-item-fiyat-${idx}`}
+                    style={styles.itemInput}
+                  />
+                </View>
+                <View style={styles.itemSubWrap}>
+                  <Text style={styles.itemLabel}>=</Text>
+                  <Text style={[styles.itemSub, sub > 0 && { color: colors.textPrimary }]}>
+                    {sub > 0 ? formatTRY(sub, false) : '–'}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+          {hasItems && (
+            <View style={styles.itemsTotal}>
+              <Text style={styles.itemsTotalLabel}>TOPLAM</Text>
+              <Text style={styles.itemsTotalValue}>{formatTRY(itemsTotal)}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
       <Field
-        label="Tutar (₺)"
-        value={amount}
+        label={hasItems ? 'Tutar (₺) — Otomatik' : 'Tutar (₺)'}
+        value={hasItems ? formatTRY(itemsTotal, false) : amount}
         onChangeText={setAmount}
         keyboardType="numeric"
         placeholder="0,00"
         testID="input-action-amount"
+        editable={!hasItems}
       />
       <Field
         label="Açıklama (Opsiyonel)"
@@ -353,4 +430,70 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, padding: spacing.md,
   },
   cancelText: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
+  itemsBox: {
+    backgroundColor: colors.bgSecondary,
+    borderRadius: radius.card,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  itemsHeader: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 1.2,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: spacing.xs,
+  },
+  itemCell: {
+    flex: 1,
+  },
+  itemLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: 2,
+  },
+  itemInput: {
+    height: 40,
+    fontSize: 14,
+  },
+  itemX: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    paddingBottom: 12,
+  },
+  itemSubWrap: {
+    minWidth: 80,
+    alignItems: 'flex-end',
+    paddingBottom: 8,
+  },
+  itemSub: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  itemsTotal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  itemsTotalLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 1.2,
+  },
+  itemsTotalValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
+  },
 });
