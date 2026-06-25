@@ -156,7 +156,12 @@ function BankActionSheet({
     <Sheet visible={!!bank} onClose={onClose} title={bank.name} testID="bank-action-sheet">
       <View style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>BAKİYE</Text>
-        <Text style={[styles.balanceValue, { color: bank.balance >= 0 ? colors.asset : colors.debt }]}>
+        <Text
+          style={[styles.balanceValue, { color: bank.balance >= 0 ? colors.asset : colors.debt }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.5}
+        >
           {formatTRY(bank.balance)}
         </Text>
       </View>

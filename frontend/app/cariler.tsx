@@ -265,9 +265,14 @@ function CompanyActionSheet({
         <View style={styles.balanceTopRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.balanceLabel}>GÜNCEL BAKİYE</Text>
-            <Text style={[styles.balanceValue, {
-              color: company.balance > 0 ? colors.debt : company.balance < 0 ? colors.asset : colors.textPrimary
-            }]}>
+            <Text
+              style={[styles.balanceValue, {
+                color: company.balance > 0 ? colors.debt : company.balance < 0 ? colors.asset : colors.textPrimary
+              }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
               {formatTRY(company.balance)}
             </Text>
             <Text style={styles.balanceHint}>

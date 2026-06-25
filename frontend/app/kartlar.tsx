@@ -234,7 +234,14 @@ function CardActionSheet({
     <Sheet visible={!!card} onClose={onClose} title={card.name} testID="card-action-sheet">
       <View style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>KART BORCU</Text>
-        <Text style={[styles.balanceValue, { color: colors.debt }]}>{formatTRY(card.used)}</Text>
+        <Text
+          style={[styles.balanceValue, { color: colors.debt }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.5}
+        >
+          {formatTRY(card.used)}
+        </Text>
         <Text style={styles.balanceHint}>Kalan limit: {formatTRY(card.limit - card.used)}</Text>
       </View>
 
