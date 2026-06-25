@@ -262,16 +262,40 @@ function CompanyActionSheet({
   return (
     <Sheet visible={!!company} onClose={onClose} title={company.name} testID="company-action-sheet">
       <View style={styles.balanceCard}>
-        <Text style={styles.balanceLabel}>GÜNCEL BAKİYE</Text>
-        <Text style={[styles.balanceValue, {
-          color: company.balance > 0 ? colors.debt : company.balance < 0 ? colors.asset : colors.textPrimary
-        }]}>
-          {formatTRY(company.balance)}
-        </Text>
-        <Text style={styles.balanceHint}>
-          {company.balance > 0 ? 'Bu şirkete borçlusunuz' :
-            company.balance < 0 ? 'Bu şirket size borçlu' : 'Hesap denk'}
-        </Text>
+        <View style={styles.balanceTopRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.balanceLabel}>GÜNCEL BAKİYE</Text>
+            <Text style={[styles.balanceValue, {
+              color: company.balance > 0 ? colors.debt : company.balance < 0 ? colors.asset : colors.textPrimary
+            }]}>
+              {formatTRY(company.balance)}
+            </Text>
+            <Text style={styles.balanceHint}>
+              {company.balance > 0 ? 'Bu şirkete borçlusunuz' :
+                company.balance < 0 ? 'Bu şirket size borçlu' : 'Hesap denk'}
+            </Text>
+          </View>
+          {(() => {
+            const totalPurchases = transactions
+              .filter((t) => t.type === 'company_purchase')
+              .reduce((s, t) => s + t.amount, 0);
+            const totalPayments = transactions
+              .filter((t) => t.type === 'cash_payment' || t.type === 'card_payment')
+              .reduce((s, t) => s + t.amount, 0);
+            return (
+              <View style={styles.balanceStats}>
+                <Text style={styles.balanceStatLabel}>Toplam Alışlar</Text>
+                <Text style={[styles.balanceStatValue, { color: colors.purchase }]}>
+                  {formatTRY(totalPurchases)}
+                </Text>
+                <Text style={[styles.balanceStatLabel, { marginTop: 6 }]}>Toplam Ödemeler</Text>
+                <Text style={[styles.balanceStatValue, { color: colors.debt }]}>
+                  {formatTRY(totalPayments)}
+                </Text>
+              </View>
+            );
+          })()}
+        </View>
       </View>
 
       <Picker
@@ -440,6 +464,26 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderRadius: radius.card,
     gap: 4,
+  },
+  balanceTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+  },
+  balanceStats: {
+    minWidth: 120,
+    alignItems: 'flex-end',
+  },
+  balanceStatLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    letterSpacing: 0.8,
+  },
+  balanceStatValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    marginTop: 1,
   },
   balanceLabel: { fontSize: 10, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5 },
   balanceValue: { fontSize: 28, fontWeight: '800', letterSpacing: -1 },
