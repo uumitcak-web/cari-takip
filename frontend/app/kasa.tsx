@@ -662,7 +662,9 @@ function EntryActionSheet({
                 >
                   <View style={{ flex: 1 }}>
                     <View style={styles.historyRowTop}>
-                      <Text style={styles.historyLabel}>{tx.note ? tx.note : 'POS Satış'}</Text>
+                      <Text style={styles.historyLabel} numberOfLines={1}>
+                        {tx.note ? tx.note : 'POS Satış'}
+                      </Text>
                       {tx.pos > 0 && (
                         <View style={styles.posBadge}>
                           <Ionicons name="card" size={9} color={colors.purchase} />
@@ -670,10 +672,17 @@ function EntryActionSheet({
                         </View>
                       )}
                     </View>
+                    {/* 1. satır: Tarih · Nakit */}
                     <Text style={styles.historyDate}>
                       {formatDate(tx.date)}
-                      {tx.pos > 0 ? ` · Pos ${formatTRY(tx.pos, false)} − Kesinti ${formatTRY(c.commission + c.tax, false)} ₺` : ''}
+                      {tx.tutar > 0 ? ` · Nakit ${formatTRY(tx.tutar, false)} ₺` : ''}
                     </Text>
+                    {/* 2. satır: Pos · Kesinti */}
+                    {tx.pos > 0 && (
+                      <Text style={styles.historyDate}>
+                        Pos {formatTRY(tx.pos, false)} ₺ · Kesinti {formatTRY(c.commission + c.tax, false)} ₺
+                      </Text>
+                    )}
                   </View>
                   <Text style={[styles.historyAmount, { color: c.net >= 0 ? colors.asset : colors.debt }]}>
                     +{formatTRY(c.net, false)} ₺

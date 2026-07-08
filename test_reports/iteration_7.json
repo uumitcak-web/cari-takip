@@ -1,0 +1,31 @@
+{
+  "summary": "Frontend-only verification of HAREKET GEÇMİŞİ POS Satış row redesign in /app/frontend/app/kasa.tsx (lines 654-690). Ran mobile playwright test at 390x844 against public URL: created entry 'hayriye', added 3 POS sales (A: 3000/2000, B: 4000/3000, C: 5000/2500) and 1 non-POS sale (D: 1000/0). All 4 rows render with the new two-subline layout exactly as specified. All computed values match expected math. Transfer rendering code (lines 692-720) is untouched from the diff scope and there are no banks seeded to interactively create a transfer, so T5 verified via code inspection only.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "verified_cases": {
+    "T1_setup": "PASS — 'hayriye' entry created; 3 POS sales + 1 non-POS sale added successfully.",
+    "T2_sale_row_format": "PASS — Each POS-bearing sale row shows: title 'POS Satış' with POS badge; subline1 '08.07.2026 · Nakit <X> ₺'; subline2 'Pos <Y> ₺ · Kesinti <Z> ₺'; right amount '+<net> ₺' in green (asset color).",
+    "T3_sale_C_math": "PASS — Sale C (5000/2500) shows exactly 'Nakit 5.000,00 ₺', 'Pos 2.500,00 ₺ · Kesinti 52,24 ₺', '+7.447,76 ₺'. (comm=49.75, tax=2.4875, kesinti=52.2375→52,24; net=7447.7625→7.447,76.)",
+    "T3_sale_A_math": "PASS — Sale A (3000/2000): 'Nakit 3.000,00 ₺', 'Pos 2.000,00 ₺ · Kesinti 41,79 ₺', '+4.958,21 ₺'.",
+    "T3_sale_B_math": "PASS — Sale B (4000/3000): 'Nakit 4.000,00 ₺', 'Pos 3.000,00 ₺ · Kesinti 62,69 ₺', '+6.937,32 ₺'.",
+    "T4_no_pos_row": "PASS — Sale D (1000/no POS) shows only 1 subline '08.07.2026 · Nakit 1.000,00 ₺'. Second Pos/Kesinti line correctly NOT rendered (tx.pos === 0). Right: '+1.000,00 ₺'. Note: 'POS Satış' title still shown (existing fallback behavior when tx.note is empty; out of scope for this change).",
+    "T5_transfer_row": "NOT INTERACTIVELY TESTED — no banks are configured in the seed data (picker had 0 options), so no transfer could be created via UI. Code inspection of kasa.tsx lines 692-720 confirms transfer rendering is unchanged: single subline '<Tarih>[· <note>]' with AKTARIM badge and red '−<amount> ₺'. No regression risk from the diff which only touches the sale branch."
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor (pre-existing, out of scope): a sale row with tx.tutar>0 and tx.pos===0 still shows 'POS Satış' as the title fallback when note is empty. Consider showing 'Nakit Satış' or hiding badge-related title when there is no POS. Not blocking."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "Created 1 kasa entry 'hayriye' + 4 kasa transactions (3 POS + 1 non-POS) via UI at public URL for this test.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The row layout is verified on web preview at 390x844. If banks are added to the store, T5 (transfer row) can be interactively verified by tapping 'Parayı Aktar (Bankaya)' inside a kasa entry action sheet.",
+  "rca_of_issue": "N/A — feature works as specified."
+}
