@@ -663,7 +663,7 @@ function EntryActionSheet({
                   <View style={{ flex: 1 }}>
                     <View style={styles.historyRowTop}>
                       <Text style={styles.historyLabel} numberOfLines={1}>
-                        {tx.note ? tx.note : 'POS Satış'}
+                        {tx.note ? tx.note : 'Nakit Akış'}
                       </Text>
                       {tx.pos > 0 && (
                         <View style={styles.posBadge}>
