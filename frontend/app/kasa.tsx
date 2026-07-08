@@ -134,7 +134,7 @@ export default function Kasa() {
             return (
               <TouchableOpacity
                 key={e.id}
-                style={styles.row}
+                style={styles.entryCard}
                 onPress={() => setActionFor(e)}
                 onLongPress={() => {
                   Alert.alert(
@@ -149,7 +149,8 @@ export default function Kasa() {
                 testID={`kasa-row-${e.id}`}
                 activeOpacity={0.7}
               >
-                <View style={styles.rowLeft}>
+                {/* Üst: avatar + isim + işlem sayısı */}
+                <View style={styles.entryHeader}>
                   <View style={styles.avatar}>
                     <Text style={styles.avatarText}>{e.name.charAt(0).toUpperCase()}</Text>
                   </View>
@@ -160,16 +161,45 @@ export default function Kasa() {
                     </Text>
                   </View>
                 </View>
-                <View style={{ alignItems: 'flex-end', maxWidth: '45%' }}>
-                  <Text
-                    style={[styles.amount, { color: totals.posdanGelen > 0 ? colors.asset : totals.posdanGelen < 0 ? colors.debt : colors.textSecondary }]}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.6}
-                  >
-                    {formatTRY(totals.posdanGelen)}
-                  </Text>
-                  <Text style={styles.subSmall}>Posdan Gelen</Text>
+
+                {/* Alt: 3'lü breakdown (Postan Gelen | Nakit + Net Toplam) */}
+                <View style={styles.entryBalanceWrap}>
+                  <View style={styles.balanceSplitRow}>
+                    <View style={styles.balanceSplitCol}>
+                      <Text style={styles.splitLabel}>POSTAN GELEN</Text>
+                      <Text
+                        style={[styles.entrySplitValue, { color: totals.posdanGelen > 0 ? colors.asset : totals.posdanGelen < 0 ? colors.debt : colors.textSecondary }]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.5}
+                      >
+                        {formatTRY(totals.posdanGelen)}
+                      </Text>
+                    </View>
+                    <View style={styles.balanceSplitDivider} />
+                    <View style={styles.balanceSplitCol}>
+                      <Text style={styles.splitLabel}>NAKİT</Text>
+                      <Text
+                        style={[styles.entrySplitValue, { color: totals.nakit > 0 ? colors.textPrimary : colors.textSecondary }]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.5}
+                      >
+                        {formatTRY(totals.nakit)}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.entryNetRow}>
+                    <Text style={styles.entryNetLabel}>NET TOPLAM</Text>
+                    <Text
+                      style={[styles.entryNetValue, { color: totals.netToplam >= 0 ? colors.asset : colors.debt }]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.5}
+                    >
+                      {formatTRY(totals.netToplam)}
+                    </Text>
+                  </View>
                 </View>
               </TouchableOpacity>
             );
@@ -769,6 +799,48 @@ const styles = StyleSheet.create({
   },
 
   list: { paddingHorizontal: spacing.xl, gap: spacing.sm, paddingTop: spacing.sm },
+
+  entryCard: {
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.card,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  entryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  entryBalanceWrap: {
+    backgroundColor: colors.bgSecondary,
+    borderRadius: radius.base,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  entrySplitValue: {
+    fontSize: 15, fontWeight: '800', letterSpacing: -0.4,
+    marginTop: 2,
+  },
+  entryNetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    gap: spacing.sm,
+  },
+  entryNetLabel: {
+    fontSize: 10, fontWeight: '800',
+    color: colors.textPrimary, letterSpacing: 1.2,
+  },
+  entryNetValue: {
+    fontSize: 16, fontWeight: '800', letterSpacing: -0.5,
+    flex: 1, textAlign: 'right',
+  },
+
   grandBalanceWrap: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.md,

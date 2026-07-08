@@ -1,0 +1,35 @@
+{
+  "summary": "Frontend-only test of /kasa entry card 3-way balance breakdown (POSTAN GELEN | NAKİT + NET TOPLAM). All 7 test cases (T1-T7) passed. Values match spec exactly for hayriye and osman entries, plus aggregated grand totals. Action sheet still opens with title on tap; long-press delete Alert.alert verified via code inspection.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/kasa_hayriye.png",
+    "/app/test_reports/kasa_both.png",
+    "/app/test_reports/kasa_hayriye_sheet.png"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Header eyebrow text on /kasa is 'POSTAN GELEN' (line 55 of kasa.tsx) — unchanged in this iteration but appears to be leftover copy from the older single-value layout. Consider replacing with 'ÖZET' or similar since the aggregated card below now shows all three values. Non-blocking."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "Test seeded 2 kasa entries via UI: hayriye (Tutar 6000, Pos 4000) and osman (Tutar 21640, Pos 2848,50), both using default rates 1,99%/5%. localStorage cleared at start of run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Feature verified: kasa entry cards now show 3-way breakdown (POSTAN GELEN | NAKİT + NET TOPLAM with divider). testID for entry cards: kasa-row-<id>. Grand balance card testID: kasa-grand-balance. Action sheet testID: kasa-action-sheet.",
+  "rca_of_issue": "N/A — feature verification, no issue.",
+  "test_results_detail": {
+    "T1_add_hayriye_pos": "PASS — entry added, POS sale (Tutar 6000, Pos 4000, 1,99/5) saved successfully.",
+    "T2_hayriye_card_breakdown": "PASS — card shows: 'H' avatar, 'hayriye', '1 işlem', POSTAN GELEN 3.916,42 ₺, NAKİT 6.000,00 ₺, NET TOPLAM 9.916,42 ₺. Exact match with spec.",
+    "T3_osman_card_breakdown": "PASS — card shows: POSTAN GELEN 2.788,98 ₺, NAKİT 21.640,00 ₺, NET TOPLAM 24.428,98 ₺. Exact match with spec.",
+    "T4_grand_balance_aggregate": "PASS — grand card: POSTAN GELEN 6.705,40 ₺, NAKİT 27.640,00 ₺, NET TOPLAM 34.345,40 ₺. Exact match with spec.",
+    "T5_tap_opens_action_sheet": "PASS — tapping hayriye row opens kasa-action-sheet with title 'hayriye' and identical 3-way balance card inside (3.916,42 / 6.000,00 / 9.916,42).",
+    "T6_long_press_delete": "PASS (code inspection) — /app/frontend/app/kasa.tsx lines 139-148 wires onLongPress to Alert.alert with 'Vazgeç' / 'Sil' options that calls deleteKasaEntry(e.id). Alert.alert is not automatable on RN-web so runtime check is not possible.",
+    "T7_styling": "PASS — entryCard has rounded corners (radius.card), entryHeader row with avatar+name+işlem, entryBalanceWrap uses lighter bgSecondary background with balanceSplitRow (two columns + vertical divider) and entryNetRow with a top border acting as the divider above NET TOPLAM. Screenshots confirm layout."
+  }
+}
