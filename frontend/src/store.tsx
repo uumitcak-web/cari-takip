@@ -76,6 +76,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       id: uid(),
       name: c.name,
       type: c.type,
+      branch: c.branch,
       balance: c.balance ?? 0,
       phone: c.phone,
       note: c.note,

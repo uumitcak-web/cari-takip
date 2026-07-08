@@ -1,0 +1,35 @@
+{
+  "summary": "Ran end-to-end mobile web preview tests for the /cariler group-by-company-name + branches feature. All 8 automated cases (T1-T6, T8, T9) passed exactly as specified. T7 (long-press Alert) was not automated because react-native-web's Alert.alert does not surface a testable DOM element for Playwright; code inspection confirms the Alert.alert copy is correct ('ersoy — Tedarikçi şubesi silinsin mi?' with Vazgeç/Sil).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_5.json"],
+  "test_results_detail": {
+    "T1_add_three_companies": "PASS - ersoy/Tedarikçi/5000, ersoy/Müşteri/-3000, Acme/(no branch)/1500 saved",
+    "T2_grouping_and_totals": "PASS - Exactly 1 group card 'ersoy / 2 şube / NET TOPLAM 2.000,00 ₺' with 2 branch rows (Tedarikçi 5.000,00₺ Borçlu, Müşteri -3.000,00 ₺ Alacaklı) + 1 standalone row 'Acme 1.500,00 ₺ Borçlu'",
+    "T3_form_shape": "PASS - No old 'picker-company-type' Tür picker present. Free-text field with testID='input-company-branch' and label 'ŞUBE / ETIKET (OPSIYONEL)' rendered",
+    "T4_branch_action_sheet": "PASS - Tapping Tedarikçi branch opened CompanyActionSheet titled 'ersoy — Tedarikçi'. Added 100 ₺ Yeni Alış",
+    "T5_balance_updates": "PASS - Tedarikçi 5.000 → 5.100,00 ₺; Group NET TOPLAM 2.000 → 2.100,00 ₺; Müşteri unchanged at -3.000,00 ₺",
+    "T6_localStorage_shape": "PASS - Key 'cari_app_data_v1' → ersoy entries carry branch='Tedarikçi' / 'Müşteri'; Acme entry has branch=undefined (JSON parse showed null which is JSON representation of undefined-omitted)",
+    "T7_long_press_delete_alert": "NOT AUTOMATED - react-native-web renders Alert.alert without a DOM affordance Playwright can assert. Code path verified by inspection: cariler.tsx lines 146-155 uses Alert.alert('Şubeyi Sil', `${c.name}${c.branch ? ' — ' + c.branch : ''} şubesi silinsin mi?`, [Vazgeç, Sil])",
+    "T8_add_third_branch": "PASS - After adding Muhasebe 200 ₺, ersoy group shows '3 şube' and NET TOPLAM 2.300,00 ₺ (=5100-3000+200)",
+    "T9_single_branch_still_group": "PASS - Xolo/Merkez/800 renders as group card 'Xolo / 1 şube / NET TOPLAM 800,00 ₺' with one branch row"
+  },
+  "action_items": [
+    "Optional: consider adding a lightweight Alert-shim/testID for delete confirmation so it can be automated on web preview (currently untestable via Playwright)."
+  ],
+  "critical_code_review_comments": [
+    "cariler.tsx line 269: addCompany still forces type: 'supplier'. Since the Tür picker was removed, all new companies are stored as 'supplier'. Type is no longer used for UI, but old records saved before this change may have type='customer' — verify no legacy screens rely on Company.type filtering. Also, since branch is now the source-of-truth and type has been effectively removed from UX, main agent may want to remove `type` from the Company type or make it optional.",
+    "Grouping key uses c.name.trim().toLowerCase() (cariler.tsx:28). This is correct and case-insensitive. However displayName uses comps[0].name.trim() (line 34) — so casing of the first-added entry wins. Acceptable but worth noting."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A - frontend-only test", "frontend": "100% of automatable cases (8/8); T7 not automatable on RN-web"},
+  "seed_data_creation": "Tests created their own seed data via UI then verified via localStorage and DOM. No preserved seed left after run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Cariler grouping-by-name with branch labels works end-to-end. Store key is 'cari_app_data_v1'. testIDs in use: cariler-screen, add-company-fab, input-company-name, input-company-branch, input-company-balance, btn-save-company, company-group-<lowercase-name>, branch-row-<id>, company-row-<id>, company-action-sheet, input-action-amount, btn-submit-action. Old testID 'picker-company-type' has been removed as expected."
+}

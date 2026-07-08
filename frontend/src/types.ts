@@ -4,6 +4,7 @@ export interface Company {
   id: string;
   name: string;
   type: CompanyType;
+  branch?: string; // Şube / Etiket (Ör. "Tedarikçi", "Müşteri", "Şube 1")
   // Pozitif: bizim onlara borcumuz, Negatif: onların bize borcu
   balance: number;
   phone?: string;

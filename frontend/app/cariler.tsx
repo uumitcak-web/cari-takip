@@ -21,6 +21,24 @@ export default function Cariler() {
   const [addOpen, setAddOpen] = useState(false);
   const [actionFor, setActionFor] = useState<Company | null>(null);
 
+  // Aynı isimli şirketleri grupla (case-insensitive)
+  const groups = React.useMemo(() => {
+    const map = new Map<string, Company[]>();
+    for (const c of data.companies) {
+      const key = c.name.trim().toLowerCase();
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(c);
+    }
+    return Array.from(map.entries()).map(([key, comps]) => ({
+      key,
+      displayName: comps[0].name.trim(),
+      branches: comps.slice().sort((a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      ),
+      totalBalance: comps.reduce((s, c) => s + c.balance, 0),
+    }));
+  }, [data.companies]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']} testID="cariler-screen">
       <View style={styles.header}>
@@ -39,43 +57,133 @@ export default function Cariler() {
         />
       ) : (
         <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-          {data.companies.map((c) => (
-            <TouchableOpacity
-              key={c.id}
-              style={styles.row}
-              onPress={() => setActionFor(c)}
-              onLongPress={() => {
-                Alert.alert('Sil', `${c.name} silinsin mi?`, [
-                  { text: 'Vazgeç', style: 'cancel' },
-                  { text: 'Sil', style: 'destructive', onPress: () => deleteCompany(c.id) },
-                ]);
-              }}
-              testID={`company-row-${c.id}`}
-            >
-              <View style={styles.rowLeft}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{c.name.charAt(0).toUpperCase()}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.name}>{c.name}</Text>
-                  <Text style={styles.sub}>{c.type === 'supplier' ? 'Tedarikçi' : 'Müşteri'}</Text>
-                </View>
-              </View>
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text
-                  style={[
-                    styles.amount,
-                    { color: c.balance > 0 ? colors.debt : c.balance < 0 ? colors.asset : colors.textSecondary },
-                  ]}
+          {groups.map((g) => {
+            // Tek şubeliyse ve şube adı yoksa: klasik tek satır
+            if (g.branches.length === 1 && !g.branches[0].branch) {
+              const c = g.branches[0];
+              return (
+                <TouchableOpacity
+                  key={c.id}
+                  style={styles.row}
+                  onPress={() => setActionFor(c)}
+                  onLongPress={() => {
+                    Alert.alert('Sil', `${c.name} silinsin mi?`, [
+                      { text: 'Vazgeç', style: 'cancel' },
+                      { text: 'Sil', style: 'destructive', onPress: () => deleteCompany(c.id) },
+                    ]);
+                  }}
+                  testID={`company-row-${c.id}`}
                 >
-                  {formatTRY(c.balance)}
-                </Text>
-                <Text style={styles.subSmall}>
-                  {c.balance > 0 ? 'Borçlu' : c.balance < 0 ? 'Alacaklı' : 'Bakiye yok'}
-                </Text>
+                  <View style={styles.rowLeft}>
+                    <View style={styles.avatar}>
+                      <Text style={styles.avatarText}>{c.name.charAt(0).toUpperCase()}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.name}>{c.name}</Text>
+                      <Text style={styles.sub}>Cari</Text>
+                    </View>
+                  </View>
+                  <View style={{ alignItems: 'flex-end', maxWidth: '45%' }}>
+                    <Text
+                      style={[
+                        styles.amount,
+                        { color: c.balance > 0 ? colors.debt : c.balance < 0 ? colors.asset : colors.textSecondary },
+                      ]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.6}
+                    >
+                      {formatTRY(c.balance)}
+                    </Text>
+                    <Text style={styles.subSmall}>
+                      {c.balance > 0 ? 'Borçlu' : c.balance < 0 ? 'Alacaklı' : 'Bakiye yok'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            }
+
+            // Şubeli veya çoklu grup — grup kartı olarak render et
+            return (
+              <View key={g.key} style={styles.groupCard} testID={`company-group-${g.key}`}>
+                {/* Grup Başlığı */}
+                <View style={styles.groupHeader}>
+                  <View style={styles.rowLeft}>
+                    <View style={styles.avatar}>
+                      <Text style={styles.avatarText}>{g.displayName.charAt(0).toUpperCase()}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.name}>{g.displayName}</Text>
+                      <Text style={styles.sub}>{g.branches.length} şube</Text>
+                    </View>
+                  </View>
+                  <View style={{ alignItems: 'flex-end', maxWidth: '45%' }}>
+                    <Text style={styles.groupTotalLabel}>NET TOPLAM</Text>
+                    <Text
+                      style={[
+                        styles.groupTotalValue,
+                        { color: g.totalBalance > 0 ? colors.debt : g.totalBalance < 0 ? colors.asset : colors.textSecondary },
+                      ]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.55}
+                    >
+                      {formatTRY(g.totalBalance)}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Şubeler */}
+                <View style={styles.groupBranches}>
+                  {g.branches.map((c, idx) => (
+                    <TouchableOpacity
+                      key={c.id}
+                      style={[
+                        styles.branchRow,
+                        idx === g.branches.length - 1 && { borderBottomWidth: 0 },
+                      ]}
+                      onPress={() => setActionFor(c)}
+                      onLongPress={() => {
+                        Alert.alert(
+                          'Şubeyi Sil',
+                          `${c.name}${c.branch ? ' — ' + c.branch : ''} şubesi silinsin mi?`,
+                          [
+                            { text: 'Vazgeç', style: 'cancel' },
+                            { text: 'Sil', style: 'destructive', onPress: () => deleteCompany(c.id) },
+                          ]
+                        );
+                      }}
+                      testID={`branch-row-${c.id}`}
+                      activeOpacity={0.7}
+                    >
+                      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <View style={styles.branchDot} />
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.branchName}>
+                            {c.branch || 'Şube'}
+                          </Text>
+                          <Text style={styles.branchSub}>
+                            {c.balance > 0 ? 'Borçlu' : c.balance < 0 ? 'Alacaklı' : 'Bakiye yok'}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text
+                        style={[
+                          styles.branchAmount,
+                          { color: c.balance > 0 ? colors.debt : c.balance < 0 ? colors.asset : colors.textSecondary },
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.6}
+                      >
+                        {formatTRY(c.balance)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </TouchableOpacity>
-          ))}
+            );
+          })}
           <View style={{ height: 100 }} />
         </ScrollView>
       )}
@@ -117,29 +225,29 @@ function AddCompanySheet({
 }: {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (v: { name: string; type: 'supplier' | 'customer'; balance: number; phone?: string; note?: string }) => void;
+  onSubmit: (v: { name: string; type: 'supplier' | 'customer'; branch?: string; balance: number; phone?: string; note?: string }) => void;
 }) {
   const [name, setName] = useState('');
-  const [type, setType] = useState<'supplier' | 'customer'>('supplier');
+  const [branch, setBranch] = useState('');
   const [balance, setBalance] = useState('');
   const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
 
-  const reset = () => { setName(''); setType('supplier'); setBalance(''); setPhone(''); setNote(''); };
+  const reset = () => { setName(''); setBranch(''); setBalance(''); setPhone(''); setNote(''); };
 
   return (
     <Sheet visible={visible} onClose={() => { reset(); onClose(); }} title="Yeni Şirket" testID="add-company-sheet">
-      <Field label="Şirket Adı" value={name} onChangeText={setName} placeholder="Örn. Acme Tedarik" testID="input-company-name" />
-      <Picker
-        label="Tür"
-        options={[
-          { label: 'Tedarikçi', value: 'supplier' },
-          { label: 'Müşteri', value: 'customer' },
-        ]}
-        value={type}
-        onChange={(v) => setType(v as 'supplier' | 'customer')}
-        testID="picker-company-type"
+      <Field label="Şirket Adı" value={name} onChangeText={setName} placeholder="Örn. ersoy" testID="input-company-name" />
+      <Field
+        label="Şube / Etiket (Opsiyonel)"
+        value={branch}
+        onChangeText={setBranch}
+        placeholder="Örn. Tedarikçi, Müşteri, Şube 1"
+        testID="input-company-branch"
       />
+      <Text style={styles.hint}>
+        Aynı isimde bir şirkete birden fazla şube eklerseniz otomatik gruplanır ve toplam bakiye gösterilir.
+      </Text>
       <Field
         label="Açılış Bakiyesi (₺)"
         value={balance}
@@ -158,7 +266,8 @@ function AddCompanySheet({
           if (!name.trim()) return;
           onSubmit({
             name: name.trim(),
-            type,
+            type: 'supplier',
+            branch: branch.trim() || undefined,
             balance: parseTRY(balance),
             phone: phone.trim() || undefined,
             note: note.trim() || undefined,
@@ -260,7 +369,12 @@ function CompanyActionSheet({
   };
 
   return (
-    <Sheet visible={!!company} onClose={onClose} title={company.name} testID="company-action-sheet">
+    <Sheet
+      visible={!!company}
+      onClose={onClose}
+      title={company.name + (company.branch ? ' — ' + company.branch : '')}
+      testID="company-action-sheet"
+    >
       <View style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>GÜNCEL BAKİYE</Text>
         <Text
@@ -465,6 +579,64 @@ const styles = StyleSheet.create({
   amount: { fontSize: 16, fontWeight: '800', letterSpacing: -0.5 },
   subSmall: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
   hint: { fontSize: 11, color: colors.textSecondary, marginTop: -4 },
+
+  // Şirket grubu (aynı isimli birden fazla şube için)
+  groupCard: {
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.card,
+    overflow: 'hidden',
+  },
+  groupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.bgSecondary,
+    gap: spacing.sm,
+  },
+  groupTotalLabel: {
+    fontSize: 9, fontWeight: '700',
+    color: colors.textSecondary, letterSpacing: 1.3,
+  },
+  groupTotalValue: {
+    fontSize: 18, fontWeight: '800', letterSpacing: -0.5,
+    marginTop: 2,
+  },
+  groupBranches: {
+    paddingHorizontal: spacing.lg,
+  },
+  branchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    gap: spacing.sm,
+  },
+  branchDot: {
+    width: 6, height: 6, borderRadius: 3,
+    backgroundColor: colors.textSecondary,
+    opacity: 0.4,
+  },
+  branchName: {
+    fontSize: 15, fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  branchSub: {
+    fontSize: 11, color: colors.textSecondary,
+    marginTop: 2,
+  },
+  branchAmount: {
+    fontSize: 15, fontWeight: '800',
+    letterSpacing: -0.3,
+    maxWidth: '45%',
+  },
+
   balanceCard: {
     backgroundColor: colors.bgSecondary,
     padding: spacing.lg,
