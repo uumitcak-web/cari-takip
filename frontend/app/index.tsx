@@ -59,6 +59,46 @@ export default function Dashboard() {
           <Text style={styles.title}>Finansal Durum</Text>
         </View>
 
+        {/* Hızlı Erişim — En çok kullanılan bölümler */}
+        <View style={styles.quickTabs} testID="quick-tabs">
+          <TouchableOpacity
+            style={styles.quickTab}
+            onPress={() => router.push('/cariler')}
+            testID="quick-tab-cariler"
+            activeOpacity={0.75}
+          >
+            <View style={[styles.quickTabIcon, { backgroundColor: '#FEE2E2' }]}>
+              <Ionicons name="people" size={20} color={colors.debt} />
+            </View>
+            <Text style={styles.quickTabLabel}>Cariler</Text>
+            <Text style={styles.quickTabValue}>{data.companies.length}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickTab}
+            onPress={() => router.push('/kasa')}
+            testID="quick-tab-kasa"
+            activeOpacity={0.75}
+          >
+            <View style={[styles.quickTabIcon, { backgroundColor: '#DCFCE7' }]}>
+              <Ionicons name="wallet" size={20} color={colors.asset} />
+            </View>
+            <Text style={styles.quickTabLabel}>Kasa</Text>
+            <Text style={styles.quickTabValue}>{(data.kasaEntries || []).length}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickTab}
+            onPress={() => router.push('/genel-durum')}
+            testID="quick-tab-kupur"
+            activeOpacity={0.75}
+          >
+            <View style={[styles.quickTabIcon, { backgroundColor: '#FEF3C7' }]}>
+              <Ionicons name="cash" size={20} color={colors.warning} />
+            </View>
+            <Text style={styles.quickTabLabel}>Kupür</Text>
+            <Text style={styles.quickTabValue}>{formatTRY(totals.evde, false)} ₺</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Net Pozisyon */}
         <View style={styles.netCard} testID="net-position-card">
           <Text style={styles.netLabel}>NET POZİSYON</Text>
@@ -233,16 +273,42 @@ const styles = StyleSheet.create({
   scroll: { padding: spacing.xl, gap: spacing.lg },
   header: { gap: 4, marginBottom: spacing.xs },
   eyebrow: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     color: colors.textSecondary,
     letterSpacing: 1.5,
   },
   title: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '800',
     color: colors.textPrimary,
-    letterSpacing: -1.2,
+    letterSpacing: -0.8,
+  },
+  quickTabs: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  quickTab: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.card,
+    padding: spacing.md,
+    alignItems: 'center',
+    gap: 6,
+  },
+  quickTabIcon: {
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  quickTabLabel: {
+    fontSize: 12, fontWeight: '700',
+    color: colors.textPrimary, letterSpacing: -0.2,
+  },
+  quickTabValue: {
+    fontSize: 11, fontWeight: '600',
+    color: colors.textSecondary,
   },
   netCard: {
     backgroundColor: colors.cardDark,

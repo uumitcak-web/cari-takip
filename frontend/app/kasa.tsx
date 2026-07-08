@@ -770,8 +770,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
-  eyebrow: { fontSize: 11, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5 },
-  title: { fontSize: 32, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1.2, marginTop: 14 },
+  eyebrow: { fontSize: 10, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5 },
+  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.8, marginTop: 8 },
   totalLabel: { fontSize: 10, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5 },
   total: { fontSize: 18, fontWeight: '800', letterSpacing: -0.5, maxWidth: 180 },
   settingsBtn: {

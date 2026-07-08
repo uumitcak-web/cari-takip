@@ -554,8 +554,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'space-between',
   },
-  eyebrow: { fontSize: 11, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5 },
-  title: { fontSize: 32, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1.2 },
+  eyebrow: { fontSize: 10, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5 },
+  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.8 },
   count: { fontSize: 14, fontWeight: '700', color: colors.textSecondary, paddingBottom: 6 },
   list: { paddingHorizontal: spacing.xl, gap: spacing.sm, paddingTop: spacing.sm },
   row: {
