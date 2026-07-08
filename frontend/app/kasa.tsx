@@ -52,7 +52,7 @@ export default function Kasa() {
     <SafeAreaView style={styles.container} edges={['top']} testID="kasa-screen">
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.eyebrow}>POSDAN GELEN</Text>
+          <Text style={styles.eyebrow}>POSTAN GELEN</Text>
           <Text style={styles.title}>Kasa</Text>
         </View>
         <TouchableOpacity
