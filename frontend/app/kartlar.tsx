@@ -81,17 +81,38 @@ export default function Kartlar() {
                   </View>
 
                   <View style={styles.cardBottom}>
-                    <View>
+                    <View style={styles.cardBottomCol}>
                       <Text style={styles.cardLabel}>HARCANAN</Text>
-                      <Text style={[styles.cardSmall, { color: colors.debt }]}>{formatTRY(c.used)}</Text>
+                      <Text
+                        style={[styles.cardSmall, { color: colors.debt }]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.55}
+                      >
+                        {formatTRY(c.used)}
+                      </Text>
                     </View>
-                    <View>
+                    <View style={styles.cardBottomDivider} />
+                    <View style={styles.cardBottomCol}>
                       <Text style={styles.cardLabel}>LİMİT</Text>
-                      <Text style={styles.cardSmall}>{formatTRY(c.limit)}</Text>
+                      <Text
+                        style={styles.cardSmall}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.55}
+                      >
+                        {formatTRY(c.limit)}
+                      </Text>
                     </View>
-                    <View>
+                    <View style={styles.cardBottomDivider} />
+                    <View style={styles.cardBottomCol}>
                       <Text style={styles.cardLabel}>HESAP KESİM</Text>
-                      <Text style={[styles.cardSmall, days <= 5 && { color: colors.warning }]}>
+                      <Text
+                        style={[styles.cardSmall, days <= 5 && { color: colors.warning }]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.55}
+                      >
                         {stmt.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}
                         {' · '}
                         {days === 0 ? 'Bugün' : `${days}g`}
@@ -325,8 +346,31 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   cardBarFill: { height: '100%', borderRadius: 3 },
-  cardBottom: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  cardSmall: { color: colors.textPrimary, fontSize: 13, fontWeight: '700', marginTop: 2 },
+  cardBottom: {
+    flexDirection: 'row',
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: 8,
+  },
+  cardBottomCol: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    gap: 2,
+  },
+  cardBottomDivider: {
+    width: 1,
+    backgroundColor: colors.border,
+    marginVertical: 2,
+  },
+  cardSmall: {
+    color: colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 2,
+    textAlign: 'center',
+  },
   cardMeta: {
     paddingHorizontal: spacing.sm,
     paddingTop: 6,

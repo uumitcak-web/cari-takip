@@ -43,9 +43,7 @@ function TabsNav() {
       <Tabs.Screen
         name="cariler"
         options={{
-          title: 'Cariler',
-          tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
-          tabBarTestID: 'tab-cariler',
+          href: null, // Alt tab bardan gizli — üstteki hızlı erişimden ulaşılır
         }}
       />
       <Tabs.Screen
@@ -67,17 +65,13 @@ function TabsNav() {
       <Tabs.Screen
         name="kasa"
         options={{
-          title: 'Kasa',
-          tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />,
-          tabBarTestID: 'tab-kasa',
+          href: null, // Alt tab bardan gizli — üstteki hızlı erişimden ulaşılır
         }}
       />
       <Tabs.Screen
         name="genel-durum"
         options={{
-          title: 'Kupür',
-          tabBarIcon: ({ color, size }) => <Ionicons name="cash" size={size} color={color} />,
-          tabBarTestID: 'tab-genel-durum',
+          href: null, // Alt tab bardan gizli — üstteki hızlı erişimden ulaşılır
         }}
       />
     </Tabs>

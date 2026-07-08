@@ -44,14 +44,14 @@ export default function Button({ title, onPress, variant = 'primary', loading, d
 
 const styles = StyleSheet.create({
   btn: {
-    height: 52,
+    height: 46,
     borderRadius: radius.base,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
   text: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: -0.3,
   },

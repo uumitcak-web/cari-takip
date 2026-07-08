@@ -225,15 +225,13 @@ function AddCompanySheet({
 }: {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (v: { name: string; type: 'supplier' | 'customer'; branch?: string; balance: number; phone?: string; note?: string }) => void;
+  onSubmit: (v: { name: string; type: 'supplier' | 'customer'; branch?: string; balance: number }) => void;
 }) {
   const [name, setName] = useState('');
   const [branch, setBranch] = useState('');
   const [balance, setBalance] = useState('');
-  const [phone, setPhone] = useState('');
-  const [note, setNote] = useState('');
 
-  const reset = () => { setName(''); setBranch(''); setBalance(''); setPhone(''); setNote(''); };
+  const reset = () => { setName(''); setBranch(''); setBalance(''); };
 
   return (
     <Sheet visible={visible} onClose={() => { reset(); onClose(); }} title="Yeni Şirket" testID="add-company-sheet">
@@ -257,8 +255,6 @@ function AddCompanySheet({
         testID="input-company-balance"
       />
       <Text style={styles.hint}>Pozitif değer = Onlara borcumuz, Negatif = Onların bize borcu</Text>
-      <Field label="Telefon (Opsiyonel)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" testID="input-company-phone" />
-      <Field label="Not (Opsiyonel)" value={note} onChangeText={setNote} testID="input-company-note" />
       <Button
         title="Kaydet"
         testID="btn-save-company"
@@ -269,8 +265,6 @@ function AddCompanySheet({
             type: 'supplier',
             branch: branch.trim() || undefined,
             balance: parseTRY(balance),
-            phone: phone.trim() || undefined,
-            note: note.trim() || undefined,
           });
           reset();
         }}

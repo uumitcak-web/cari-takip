@@ -22,21 +22,21 @@ export default function Field({ label, testID, style, ...rest }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 6 },
+  wrap: { gap: 5 },
   label: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: colors.textSecondary,
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
+    letterSpacing: 1.1,
   },
   input: {
-    height: 48,
+    height: 42,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.base,
     paddingHorizontal: spacing.md,
-    fontSize: 16,
+    fontSize: 14,
     color: colors.textPrimary,
     backgroundColor: colors.bg,
   },

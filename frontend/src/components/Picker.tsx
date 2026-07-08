@@ -63,28 +63,28 @@ export default function Picker({ label, options, value, onChange, testID, emptyT
 
 const styles = StyleSheet.create({
   label: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: colors.textSecondary,
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
+    letterSpacing: 1.1,
   },
   chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: 8,
     borderRadius: radius.base,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.bg,
-    minWidth: 80,
+    minWidth: 70,
   },
   chipText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: colors.textPrimary,
   },
   chipHint: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.textSecondary,
     marginTop: 2,
   },

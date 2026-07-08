@@ -1,0 +1,30 @@
+{
+  "summary": "Frontend-only regression testing for 4 UI changes: (1) bottom tab bar limited to 3 tabs, (2) simplified 'Yeni Şirket' form (3 fields), (3) global font/height reductions on Field/Picker/Button, (4) reorganized card bottom row with dividers + adjustsFontSizeToFit. All 6 test cases (T1–T6) PASS on 390x844 mobile viewport.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_details": {
+    "T1_bottom_tabs": "PASS — Bottom bar shows exactly 3 tabs (Özet, Kartlar, Bankalar). Cariler/Kasa/Kupür are hidden via href:null. Verified via tab labels: ['Özet','Kartlar','Bankalar']. Note: tabBarTestID does not emit data-testid on Expo web (a minor Expo web quirk, tabs still functional).",
+    "T2_quick_tabs": "PASS — Home shows 3 pill cards (quick-tab-cariler, quick-tab-kasa, quick-tab-kupur) each with people/wallet/cash icon and correct colors (red/green/yellow). Tapping Cariler navigates to /cariler successfully.",
+    "T3_add_company_form": "PASS — Sheet has ONLY 3 fields: input-company-name, input-company-branch, input-company-balance. input-company-phone and input-company-note are absent. btn-save-company works and creates company.",
+    "T4_action_sheet_sizes": "PASS — All 3 chips (Yeni Alış/Elden Ödeme/Kart ile Ödeme) fit in a single row at 390px viewport (chips end at x≈313, viewport=390). Chip fontSize=12px (was 14). Amount input height=42px (was 48). Alış Ekle button height=46px (was 52).",
+    "T5_card_bottom_row": "PASS — Bottom row has 5 children (3 columns + 2 dividers of width=1px). Columns are equally sized (~104.6px each) and centered. HARCANAN shows 4.523,75 ₺ (red), LİMİT shows 15.000,00 ₺, HESAP KESİM shows 15/07 · 7g. Horizontal divider on top (borderTopWidth=1). Numbers do not overlap.",
+    "T6_large_numbers": "PASS — Card with limit=999999999 & used=888888888 renders '888.888.888,00 ₺' (w=92.75) and '999.999.999,00 ₺' (w=92.75) inside column widths of ~104.6px. No overflow, no overlap. Text renders at 12px (no shrink needed since it fits). adjustsFontSizeToFit + minimumFontScale=0.55 present as safety net."
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: In _layout.tsx, tabBarTestID is set but not rendered as data-testid on Expo web. Not blocking; tabs are still tappable via label. Consider adding a wrapper testID at the tab container level if strict data-testid access is needed for future E2E."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped, frontend-only)", "frontend": "100% (6/6)"},
+  "seed_data_creation": "Created ephemeral test data via UI (TESTCO company, Bonus card, BigCard card) — persisted to AsyncStorage/localStorage only.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 4 UI changes verified. Bottom tab bar via href:null works. Add-company form has exactly 3 fields. Field/Picker/Button size reductions confirmed via computed styles. Card bottom row has vertical dividers (1px), 3 centered columns, and handles large numbers cleanly.",
+  "rca_of_issue": "N/A — no issues found."
+}
