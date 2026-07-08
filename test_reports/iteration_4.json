@@ -1,0 +1,38 @@
+{
+  "summary": "Frontend-only UI verification of the new aggregated 3-section balance card on the main /kasa screen (grandTotals useMemo + kasa-grand-balance testID). All 9 requested tests (T1-T9) PASS end-to-end on mobile viewport 390x1100 against http://localhost:3000/kasa with a freshly cleared localStorage. Every numeric value matches the spec EXACTLY: T2 empty state = 0,00 / 0,00 / 0,00; T4 (Osman POS Tutar=21640 + Pos=2848,50 @ 1,99%+5%) = POSTAN GELEN 2.788,98 ₺ / NAKİT 21.640,00 ₺ / NET TOPLAM 24.428,98 ₺; T6 (+ Veli POS Tutar=22610 + Pos=3225) aggregates to POSTAN GELEN 5.946,59 ₺ / NAKİT 44.250,00 ₺ / NET TOPLAM 50.196,59 ₺; T7 individual rows Osman=2.788,98 ₺ / Veli=3.157,61 ₺ with 'Posdan Gelen' sublabel intact; T8 Osman action sheet still has its own balance card (POSTAN GELEN 2.788,98 / NAKİT 21.640,00 / NET TOPLAM 24.428,98), Parayı Aktar (Bankaya) button, POS collapsible, and HAREKET GEÇMİŞİ list; T9 after 500 ₺ transfer to Ziraat the main grand card drops exactly to POSTAN GELEN 5.446,59 ₺ / NET TOPLAM 49.696,59 ₺ while NAKİT stays 44.250,00 ₺. Header eyebrow 'POSDAN GELEN' + title 'Kasa' + settings gear (btn-kasa-settings) all render correctly above the card. Only pre-existing non-blocking RN-Web console warnings observed (shadow* / pointerEvents deprecation), unrelated to this change. No new issues introduced.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "/kasa (main)",
+        "issues": [
+          "Redundant label: header eyebrow says 'POSDAN GELEN' (with a D) while the balance card immediately below says 'POSTAN GELEN' (with a T). Both refer to the same thing. Consider either (a) removing the eyebrow now that the full balance card is present, or (b) unifying the spelling — pick POSDAN or POSTAN and use it consistently across kasa.tsx (currently POSDAN GELEN is used for eyebrow + entry-row sublabel 'Posdan Gelen', while POSTAN GELEN is used inside both balance cards)."
+        ]
+      }
+    ],
+    "react_native_issues": [
+      {
+        "component": "Deprecated RN-Web style/prop warnings (pre-existing, not from this change)",
+        "issue": "Console warnings on every page load: '\"shadow*\" style props are deprecated. Use \"boxShadow\"' and 'props.pointerEvents is deprecated. Use style.pointerEvents'. Same warnings reported in iteration_3.json. Reference: /app/frontend/src/components/Sheet.tsx, /app/frontend/src/components/FAB.tsx, /app/frontend/src/components/Button.tsx."
+      }
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_4.json"],
+  "action_items": [
+    "OPTIONAL / minor UX: decide POSTAN vs POSDAN spelling and unify across kasa.tsx (eyebrow + entry-row sublabel currently use POSDAN, both balance cards use POSTAN).",
+    "OPTIONAL: since the aggregated grand card now shows POSTAN GELEN prominently at the top, the header eyebrow 'POSDAN GELEN' is now visually redundant with the card below — consider removing the eyebrow or changing it to a neutral tagline (e.g., no eyebrow, or 'BUGÜN' / date)."
+  ],
+  "critical_code_review_comments": [
+    "kasa.tsx is now 934 lines (was ~890) — still above the 700-line guideline. Recommend extracting EntryActionSheet, AddEntrySheet, SettingsSheet into /app/frontend/src/components/kasa/ and keeping kasa.tsx as the screen shell only.",
+    "grandTotals useMemo recomputes over ALL entries × ALL kasaTxs on every entries/kasaTxs/transactions change by calling kasaEntryTotals(e.id, kasaTxs, transactions) which itself scans full kasaTxs and transactions arrays. Complexity is O(N_entries × (N_kasaTxs + N_transactions)). Fine for hundreds of rows, but for large datasets prefer precomputing a per-entry index (Map<entryId, totals>) once and reducing the map — /app/frontend/app/kasa.tsx:40-49.",
+    "The eyebrow 'POSDAN GELEN' in the header (styles.eyebrow, line 55) and the balance card label 'POSTAN GELEN' inside kasa-grand-balance use inconsistent spelling for the same concept."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A (frontend-only request)", "frontend": "100% (9/9 T1–T9 PASS with exact numeric matches)" },
+  "seed_data_creation": "Ephemeral, created via UI on cleared localStorage: 2 KasaEntry ('Osman', 'Veli'), 2 KasaTransaction (Tutar 21640 + Pos 2848,50 @ 1,99%+5% for Osman; Tutar 22610 + Pos 3225 @ 1,99%+5% for Veli), 1 Bank 'Ziraat' (₺0), 1 kasa_transfer 500 ₺ Osman→Ziraat. Not persisted outside test session.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "grandTotals useMemo on /app/frontend/app/kasa.tsx:40-49 aggregates over entries via kasaEntryTotals(). The new balance card uses testID='kasa-grand-balance' and reuses existing styles (balanceCard/balanceSplitRow/balanceSplitCol/balanceSplitDivider/netToplamRow) with a new wrapper style 'grandBalanceWrap'. Verified numeric values POSTAN=2.788,98 (Osman) + 3.157,61 (Veli) = 5.946,59 ₺ match exactly. NAKİT 21.640 + 22.610 = 44.250,00 ₺ match. NET TOPLAM sums correctly. Transfer of 500 ₺ decrements POSTAN GELEN and NET TOPLAM by exactly 500 while NAKİT is untouched (as expected — transfers come out of pos-derived balance only). Same known RN-Web caveat: destructive long-press flows using Alert.alert (kasa entry delete / transfer undo / sale undo) are still no-op on web preview — must be tested on Expo Go or native build. All testIDs used: kasa-screen, kasa-grand-balance, btn-kasa-settings, add-kasa-fab, input-kasa-name, btn-save-kasa-entry, kasa-action-sheet, input-kasa-tutar, btn-open-pos, input-kasa-pos, btn-submit-kasa, btn-open-transfer, input-transfer-amount, btn-submit-transfer, btn-cancel-kasa, add-bank-fab, input-bank-name, input-bank-balance, btn-save-bank."
+}
